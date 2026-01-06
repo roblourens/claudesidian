@@ -12,6 +12,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInput } from '@codemirror/language';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { baseTheme } from './themes/baseTheme';
+import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
 
 /**
  * Create the base set of extensions for the editor.
@@ -48,6 +49,9 @@ function createExtensions() {
     // Theme
     oneDark,
     baseTheme,
+
+    // WYSIWYG markdown - hide syntax markers, show formatted text
+    wysiwygMarkdown(),
 
     // Placeholder for empty document
     EditorView.contentAttributes.of({
