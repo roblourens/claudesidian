@@ -1,0 +1,88 @@
+/**
+ * Main application styles.
+ * 
+ * Keep this minimal - the editor handles its own styling.
+ * This file is for the app shell and future UI components.
+ */
+
+/* Reset and base styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  color: #abb2bf;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* App container */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Title bar drag region (for frameless window on macOS) */
+.titlebar {
+  -webkit-app-region: drag;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+/* Ensure buttons and inputs are not draggable */
+button, input, textarea, a, [role="button"] {
+  -webkit-app-region: no-drag;
+}
+
+/* Editor container - takes up all available space */
+#editor-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure CodeMirror fills container */
+#editor-container .cm-editor {
+  flex: 1;
+}
+
+/* Selection colors */
+::selection {
+  background-color: #3e4451;
+}
+
+/* Scrollbar styling (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5263;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5c6370;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid #528bff;
+  outline-offset: 2px;
+}
