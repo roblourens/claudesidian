@@ -8,6 +8,8 @@
     "start": "electron-forge start",
     "dev:web": "vite --config vite.web.config.ts",
     "build:web": "vite build --config vite.web.config.ts",
+    "test": "playwright test",
+    "test:electron": "playwright test tests/electron.spec.ts",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
