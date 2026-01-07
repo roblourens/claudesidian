@@ -14,6 +14,10 @@
         "/^npx playwright test tests/tags\\.spec\\.ts --reporter=line --timeout=60000 2>&1 \\|\\| true$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^npx playwright test --reporter=dot 2>&1 \\|\\| true$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

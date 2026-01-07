@@ -76,7 +76,7 @@ function createExtensions(options?: EditorOptions) {
     tagTheme,
 
     // Tag autocomplete (if getTags function provided)
-    ...(options?.getTags ? [tagAutocomplete({ getTags: options.getTags })] : []),
+    ...(options?.getTags ? tagAutocomplete({ getTags: options.getTags }) : []),
 
     // Placeholder for empty document
     EditorView.contentAttributes.of({

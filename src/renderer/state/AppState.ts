@@ -260,6 +260,13 @@ export function findTabByPath(filePath: string): OpenTab | null {
 }
 
 /**
+ * Find a virtual tab by title.
+ */
+export function findVirtualTabByTitle(title: string): OpenTab | null {
+  return state.openTabs.find(t => t.isVirtual && t.title === title) ?? null;
+}
+
+/**
  * Options for opening a tab.
  */
 export interface OpenTabOptions {
@@ -274,12 +281,24 @@ export interface OpenTabOptions {
  * @returns The tab ID
  */
 export function openTab(filePath: string | null, content: string, options?: OpenTabOptions): string {
-  // Check if already open
+  // Check if already open by file path
   if (filePath) {
     const existing = findTabByPath(filePath);
     if (existing) {
       setActiveTab(existing.id);
       return existing.id;
+    }
+  }
+  
+  // Check if virtual tab with same title already exists
+  if (options?.isVirtual && options?.title) {
+    const existingVirtual = findVirtualTabByTitle(options.title);
+    if (existingVirtual) {
+      // Update content and switch to it
+      existingVirtual.content = content;
+      existingVirtual.originalContent = content;
+      setActiveTab(existingVirtual.id);
+      return existingVirtual.id;
     }
   }
 

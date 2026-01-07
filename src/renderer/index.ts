@@ -156,7 +156,7 @@ class App {
    * Close a tab.
    */
   private async closeTab(tab: AppState.OpenTab): Promise<void> {
-    if (tab.isDirty) {
+    if (tab.isDirty && !tab.isVirtual) {
       // In a real app, prompt user to save
       console.log('Unsaved changes in tab:', tab.filePath ?? 'untitled');
     }
@@ -204,7 +204,7 @@ class App {
 
       // Build a virtual document with all tagged paragraphs
       const lines: string[] = [];
-      lines.push(`# #${tag}`);
+      lines.push(`# ${tag}`);
       lines.push('');
 
       for (const paragraph of paragraphs) {
@@ -220,6 +220,7 @@ class App {
       const virtualContent = lines.join('\n');
       
       // Create a new virtual tab (not saveable)
+      // Use title without # to avoid tag decoration in tab
       const tabId = AppState.openTab(null, virtualContent, {
         title: `#${tag}`,
         isVirtual: true,
