@@ -2,6 +2,10 @@
     "chat.tools.terminal.autoApprove": {
         "git add": true,
         "git commit": true,
-        "npx playwright": true
+        "npx playwright": true,
+        "/^pkill -f Electron 2>/dev/null; pkill -f \"notes-app\" 2>/dev/null; sleep 1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

@@ -8,6 +8,7 @@
 import { app, dialog, IpcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import * as fileService from '../services/fileService';
 import * as workspaceService from '../services/workspaceService';
+import * as persistenceService from '../services/persistenceService';
 import type { OpenFileDialogOptions, OpenFolderDialogOptions } from '../../shared/types/ipc';
 
 /**
@@ -135,6 +136,9 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     const folderPath = result.filePaths[0];
     workspaceService.setWorkspaceRoot(folderPath);
     
+    // Persist the workspace path
+    await persistenceService.setLastWorkspace(folderPath);
+    
     // Update window title to show workspace name
     const window = getFocusedWindow();
     if (window) {
@@ -143,6 +147,31 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     }
 
     return folderPath;
+  });
+
+  ipcMain.handle('workspace:restore', async (event) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+
+    const lastWorkspace = await persistenceService.getLastWorkspace();
+    if (lastWorkspace) {
+      // Verify the folder still exists
+      const exists = await fileService.fileExists(lastWorkspace, null);
+      if (exists) {
+        workspaceService.setWorkspaceRoot(lastWorkspace);
+        
+        // Update window title
+        const window = getFocusedWindow();
+        if (window) {
+          const workspaceName = lastWorkspace.split('/').pop() ?? 'Notes';
+          window.setTitle(`${workspaceName} - Claudesidian`);
+        }
+        
+        return lastWorkspace;
+      }
+    }
+    return null;
   });
 
   ipcMain.handle('workspace:getRoot', (event) => {

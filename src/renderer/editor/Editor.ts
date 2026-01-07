@@ -6,7 +6,7 @@
  */
 
 import { EditorState } from '@codemirror/state';
-import { EditorView, keymap, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor } from '@codemirror/view';
+import { EditorView, ViewUpdate, keymap, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInput } from '@codemirror/language';
@@ -15,11 +15,21 @@ import { baseTheme } from './themes/baseTheme';
 import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
 
 /**
+ * Options for creating an editor.
+ */
+export interface EditorOptions {
+  /** Optional initial content for the editor */
+  initialContent?: string;
+  /** Callback fired when the document content changes */
+  onContentChange?: (content: string) => void;
+}
+
+/**
  * Create the base set of extensions for the editor.
  * These can be extended via the extension system.
  */
-function createExtensions() {
-  return [
+function createExtensions(options?: EditorOptions) {
+  const extensions = [
     // Core editing features
     history(),
     drawSelection(),
@@ -58,22 +68,35 @@ function createExtensions() {
       'aria-label': 'Text editor',
     }),
   ];
+
+  // Add update listener if callback provided
+  if (options?.onContentChange) {
+    extensions.push(
+      EditorView.updateListener.of((update: ViewUpdate) => {
+        if (update.docChanged) {
+          options.onContentChange!(update.state.doc.toString());
+        }
+      })
+    );
+  }
+
+  return extensions;
 }
 
 /**
  * Create a new CodeMirror editor instance.
  * 
  * @param parent - The DOM element to attach the editor to
- * @param initialContent - Optional initial content for the editor
+ * @param options - Editor configuration options
  * @returns The EditorView instance
  */
 export function createEditor(
   parent: HTMLElement,
-  initialContent = ''
+  options?: EditorOptions
 ): EditorView {
   const state = EditorState.create({
-    doc: initialContent,
-    extensions: createExtensions(),
+    doc: options?.initialContent ?? '',
+    extensions: createExtensions(options),
   });
 
   const view = new EditorView({

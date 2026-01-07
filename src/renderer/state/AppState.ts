@@ -2,7 +2,7 @@
  * Application state management.
  * 
  * Simple pub/sub state management for the renderer process.
- * Tracks current file, dirty state, and workspace information.
+ * Tracks open tabs, current file, dirty state, and workspace information.
  */
 
 import type { FileEntry } from '../../shared/types/ipc';
@@ -11,16 +11,34 @@ import type { FileEntry } from '../../shared/types/ipc';
 // Types
 // =============================================================================
 
+/** Represents an open tab/editor */
+export interface OpenTab {
+  /** Unique ID for the tab */
+  id: string;
+  /** File path, or null for untitled */
+  filePath: string | null;
+  /** Content of the file */
+  content: string;
+  /** Original content when opened (for dirty detection) */
+  originalContent: string;
+  /** Whether the tab has unsaved changes */
+  isDirty: boolean;
+}
+
 export interface AppStateData {
   /** Current workspace root path, or null if none open */
   workspaceRoot: string | null;
   /** File tree entries for the sidebar */
   fileTree: FileEntry[];
-  /** Currently open file path, or null if none */
+  /** All open tabs */
+  openTabs: OpenTab[];
+  /** Active tab ID */
+  activeTabId: string | null;
+  /** Currently open file path, or null if none (derived from active tab) */
   currentFilePath: string | null;
-  /** Whether the current file has unsaved changes */
+  /** Whether the current file has unsaved changes (derived from active tab) */
   isDirty: boolean;
-  /** Original content when file was loaded (for dirty detection) */
+  /** Original content when file was loaded (derived from active tab) */
   originalContent: string;
 }
 
@@ -33,6 +51,8 @@ export type AppStateListener = (state: AppStateData) => void;
 const state: AppStateData = {
   workspaceRoot: null,
   fileTree: [],
+  openTabs: [],
+  activeTabId: null,
   currentFilePath: null,
   isDirty: false,
   originalContent: '',
@@ -190,5 +210,180 @@ export function clearCurrentFile(): void {
   state.currentFilePath = null;
   state.originalContent = '';
   state.isDirty = false;
+  notify();
+}
+
+// =============================================================================
+// Tab Management
+// =============================================================================
+
+let tabIdCounter = 0;
+
+/**
+ * Generate a unique tab ID.
+ */
+function generateTabId(): string {
+  return `tab-${++tabIdCounter}`;
+}
+
+/**
+ * Get all open tabs.
+ */
+export function getOpenTabs(): readonly OpenTab[] {
+  return state.openTabs;
+}
+
+/**
+ * Get the active tab ID.
+ */
+export function getActiveTabId(): string | null {
+  return state.activeTabId;
+}
+
+/**
+ * Get the active tab.
+ */
+export function getActiveTab(): OpenTab | null {
+  if (!state.activeTabId) return null;
+  return state.openTabs.find(t => t.id === state.activeTabId) ?? null;
+}
+
+/**
+ * Find a tab by file path.
+ */
+export function findTabByPath(filePath: string): OpenTab | null {
+  return state.openTabs.find(t => t.filePath === filePath) ?? null;
+}
+
+/**
+ * Open a file in a new tab or switch to existing tab.
+ * @returns The tab ID
+ */
+export function openTab(filePath: string | null, content: string): string {
+  // Check if already open
+  if (filePath) {
+    const existing = findTabByPath(filePath);
+    if (existing) {
+      setActiveTab(existing.id);
+      return existing.id;
+    }
+  }
+
+  // Create new tab
+  const tab: OpenTab = {
+    id: generateTabId(),
+    filePath,
+    content,
+    originalContent: content,
+    isDirty: false,
+  };
+
+  state.openTabs.push(tab);
+  setActiveTab(tab.id);
+  return tab.id;
+}
+
+/**
+ * Set the active tab.
+ */
+export function setActiveTab(tabId: string): void {
+  const tab = state.openTabs.find(t => t.id === tabId);
+  if (!tab) return;
+
+  state.activeTabId = tabId;
+  state.currentFilePath = tab.filePath;
+  state.originalContent = tab.originalContent;
+  state.isDirty = tab.isDirty;
+  notify();
+}
+
+/**
+ * Close a tab.
+ * @returns The new active tab ID, or null if no tabs remain
+ */
+export function closeTab(tabId: string): string | null {
+  const index = state.openTabs.findIndex(t => t.id === tabId);
+  if (index === -1) return state.activeTabId;
+
+  state.openTabs.splice(index, 1);
+
+  // If we closed the active tab, select another
+  if (state.activeTabId === tabId) {
+    if (state.openTabs.length === 0) {
+      state.activeTabId = null;
+      state.currentFilePath = null;
+      state.originalContent = '';
+      state.isDirty = false;
+    } else {
+      // Select the tab at the same index, or the last tab
+      const newIndex = Math.min(index, state.openTabs.length - 1);
+      const newTab = state.openTabs[newIndex];
+      state.activeTabId = newTab.id;
+      state.currentFilePath = newTab.filePath;
+      state.originalContent = newTab.originalContent;
+      state.isDirty = newTab.isDirty;
+    }
+  }
+
+  notify();
+  return state.activeTabId;
+}
+
+/**
+ * Update the content of a tab.
+ */
+export function updateTabContent(tabId: string, content: string): void {
+  const tab = state.openTabs.find(t => t.id === tabId);
+  if (!tab) return;
+
+  tab.content = content;
+  tab.isDirty = content !== tab.originalContent;
+
+  // Update derived state if this is the active tab
+  if (state.activeTabId === tabId) {
+    state.isDirty = tab.isDirty;
+  }
+
+  notify();
+}
+
+/**
+ * Mark a tab as saved.
+ */
+export function markTabSaved(tabId: string, newContent?: string): void {
+  const tab = state.openTabs.find(t => t.id === tabId);
+  if (!tab) return;
+
+  if (newContent !== undefined) {
+    tab.content = newContent;
+    tab.originalContent = newContent;
+  } else {
+    tab.originalContent = tab.content;
+  }
+  tab.isDirty = false;
+
+  // Update derived state if this is the active tab
+  if (state.activeTabId === tabId) {
+    state.isDirty = false;
+    state.originalContent = tab.originalContent;
+  }
+
+  notify();
+}
+
+/**
+ * Update a tab's file path (e.g., after Save As).
+ */
+export function updateTabFilePath(tabId: string, filePath: string): void {
+  const tab = state.openTabs.find(t => t.id === tabId);
+  if (!tab) return;
+
+  tab.filePath = filePath;
+
+  // Update derived state if this is the active tab
+  if (state.activeTabId === tabId) {
+    state.currentFilePath = filePath;
+  }
+
   notify();
 }

@@ -12,6 +12,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import started from 'electron-squirrel-startup';
 import { createMainWindow } from './windows/mainWindow';
 import { registerIpcHandlers } from './ipc/handlers';
+import { setupApplicationMenu } from './menu/appMenu';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -30,6 +31,7 @@ function setupIpc(): void {
  */
 app.on('ready', () => {
   setupIpc();
+  setupApplicationMenu();
   createMainWindow();
 });
 

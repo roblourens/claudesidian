@@ -101,13 +101,37 @@ Application state is managed in `src/renderer/state/AppState.ts` using a simple 
 interface AppStateData {
   workspaceRoot: string | null;
   fileTree: FileEntry[];
-  currentFilePath: string | null;
-  isDirty: boolean;
+  openTabs: OpenTab[];        // All open file tabs
+  activeTabId: string | null; // Currently active tab
+  currentFilePath: string | null; // Derived from active tab
+  isDirty: boolean;           // Derived from active tab
   originalContent: string;
+}
+
+interface OpenTab {
+  id: string;               // Unique tab identifier
+  filePath: string | null;  // null for untitled files
+  content: string;          // Current editor content
+  originalContent: string;  // Content when opened/saved
+  isDirty: boolean;         // Has unsaved changes
 }
 ```
 
-### Key Functions
+### Tab Management Functions
+
+| Function | Description |
+|----------|-------------|
+| `openTab(filePath, content)` | Open a file in a new tab (or reuse existing) |
+| `closeTab(tabId)` | Close a tab by ID |
+| `setActiveTab(tabId)` | Switch to a specific tab |
+| `getActiveTab()` | Get the currently active tab |
+| `getOpenTabs()` | Get all open tabs |
+| `findTabByPath(filePath)` | Find tab by file path |
+| `updateTabContent(tabId, content)` | Update tab content (marks dirty) |
+| `updateTabFilePath(tabId, filePath)` | Update file path (after Save As) |
+| `markTabSaved(tabId, content)` | Mark tab as saved |
+
+### Legacy Functions (for compatibility)
 
 | Function | Description |
 |----------|-------------|
@@ -123,17 +147,54 @@ interface AppStateData {
 ```typescript
 // Subscribe to changes
 const unsubscribe = AppState.subscribe((state) => {
-  console.log('Current file:', state.currentFilePath);
-  console.log('Is dirty:', state.isDirty);
+  console.log('Active tab:', state.activeTabId);
+  console.log('Open tabs:', state.openTabs.length);
 });
 
-// Update state
-AppState.setCurrentFile('/path/to/file.md', 'content');
-AppState.markDirty();
+// Open files in tabs
+const tabId = AppState.openTab('/path/to/file.md', 'content');
+AppState.setActiveTab(tabId);
+
+// Track changes
+AppState.updateTabContent(tabId, 'modified content');
 
 // Cleanup
 unsubscribe();
 ```
+
+## Persistence
+
+App state is persisted across sessions using `src/main/services/persistenceService.ts`.
+
+### Persisted Data
+
+```typescript
+interface PersistedState {
+  lastWorkspace: string | null;  // Last opened workspace folder
+  recentFiles: string[];         // Recently opened files (max 10)
+  windowBounds: {                // Window position and size
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+}
+```
+
+### Storage Location
+
+Data is stored in a JSON file at:
+- macOS: `~/Library/Application Support/notes-app/app-state.json`
+- Windows: `%APPDATA%/notes-app/app-state.json`
+- Linux: `~/.config/notes-app/app-state.json`
+
+### Workspace Restoration
+
+On app startup:
+1. Renderer calls `window.api.restoreWorkspace()`
+2. Main process reads last workspace from persistence
+3. If folder still exists, it's set as workspace root
+4. Renderer loads file tree and displays in sidebar
 
 ## Future Enhancements
 

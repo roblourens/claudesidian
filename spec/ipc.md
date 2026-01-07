@@ -22,6 +22,7 @@ IPC channels are defined in `src/shared/types/ipc.ts`. Each channel specifies it
 | `workspace:getRoot` | `[]` | `string \| null` | Get current workspace path |
 | `workspace:listFiles` | `[relativePath?]` | `FileOperationResult<FileEntry[]>` | List files in directory |
 | `workspace:isOpen` | `[]` | `boolean` | Check if workspace is open |
+| `workspace:restore` | `[]` | `string \| null` | Restore last workspace from persistence |
 
 ### App Info
 

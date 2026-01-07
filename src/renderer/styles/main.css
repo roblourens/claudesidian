@@ -177,11 +177,95 @@ button, input, textarea, a, [role="button"] {
 }
 
 /* Editor container - takes up all available space */
+#editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 #editor-container {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Tab bar */
+#tab-bar,
+.tab-bar {
+  display: none;
+  flex-shrink: 0;
+  background-color: #21252b;
+  border-bottom: 1px solid #181a1f;
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: stretch;
+  height: 35px;
+}
+
+#tab-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 12px;
+  background-color: #21252b;
+  border-right: 1px solid #181a1f;
+  cursor: pointer;
+  font-size: 13px;
+  color: #9da5b4;
+  transition: background-color 0.1s;
+  max-width: 180px;
+  min-width: 80px;
+}
+
+.tab:hover {
+  background-color: #2c313a;
+}
+
+.tab.active {
+  background-color: #1e1e1e;
+  color: #abb2bf;
+  border-bottom: 1px solid #1e1e1e;
+  margin-bottom: -1px;
+}
+
+.tab.dirty .tab-name {
+  font-style: italic;
+}
+
+.tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-close {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: #636d83;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.1s, background-color 0.1s;
+}
+
+.tab:hover .tab-close,
+.tab.active .tab-close {
+  opacity: 1;
+}
+
+.tab-close:hover {
+  background-color: #4b5263;
+  color: #abb2bf;
 }
 
 /* Ensure CodeMirror fills container */

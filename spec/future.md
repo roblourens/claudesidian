@@ -2,13 +2,16 @@
 
 ## Features to Add
 
-1. **File operations**: Open/save files via IPC
-2. **Multi-file support**: Sidebar with file tree
-3. **Wiki links**: `[[link]]` syntax with autocomplete
-4. **Search**: Full-text search across notes
-5. **Sync**: Cloud sync or local folder sync
-6. **Themes**: Light/dark mode, custom themes
-7. **Plugins**: User-installable extensions
+1. ~~**File operations**: Open/save files via IPC~~ ✓
+2. ~~**Multi-file support**: Sidebar with file tree~~ ✓
+3. ~~**Tabs**: Tab bar for multiple open files~~ ✓
+4. ~~**Workspace persistence**: Remember last workspace across sessions~~ ✓
+5. **Wiki links**: `[[link]]` syntax with autocomplete
+6. **Search**: Full-text search across notes
+7. **Sync**: Cloud sync or local folder sync
+8. **Themes**: Light/dark mode, custom themes
+9. **Plugins**: User-installable extensions
+10. **Unsaved prompt**: Show dialog before closing tab with unsaved changes
 
 ## Technical Debt
 

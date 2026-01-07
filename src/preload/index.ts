@@ -121,6 +121,14 @@ const api = {
     return ipcRenderer.invoke('workspace:isOpen');
   },
 
+  /**
+   * Restore the last opened workspace.
+   * @returns Workspace path if restored, null if no previous workspace
+   */
+  restoreWorkspace: (): Promise<string | null> => {
+    return ipcRenderer.invoke('workspace:restore');
+  },
+
   // ===========================================================================
   // Menu Events
   // ===========================================================================
@@ -130,7 +138,7 @@ const api = {
    * Returns an unsubscribe function.
    */
   onMenuCommand: (
-    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder',
+    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder' | 'closeTab',
     callback: () => void
   ): (() => void) => {
     const channel = `menu:${command}`;
