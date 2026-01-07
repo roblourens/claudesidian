@@ -26,10 +26,16 @@ body {
 }
 
 /* App container */
-#app {
+#root {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 /* Title bar drag region (for frameless window on macOS) */
@@ -44,14 +50,16 @@ button, input, textarea, a, [role="button"] {
   -webkit-app-region: no-drag;
 }
 
-/* Main content area with sidebar and editor */
-#main-content {
-  display: flex;
+/* Main content area with editor */
+.main-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-/* Sidebar */
+/* Sidebar container */
+.sidebar-container,
 #sidebar {
   width: 240px;
   min-width: 180px;
@@ -63,11 +71,21 @@ button, input, textarea, a, [role="button"] {
   overflow: hidden;
 }
 
+/* Sidebar component */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px 8px 12px;
+  /* Add padding for macOS traffic light buttons */
+  padding-top: 42px;
   border-bottom: 1px solid #181a1f;
 }
 
@@ -125,14 +143,8 @@ button, input, textarea, a, [role="button"] {
 
 .sidebar-arrow {
   width: 16px;
-  font-size: 10px;
+  font-size: 9px;
   color: #636d83;
-  flex-shrink: 0;
-}
-
-.sidebar-icon {
-  margin-right: 6px;
-  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -143,11 +155,15 @@ button, input, textarea, a, [role="button"] {
 }
 
 .sidebar-directory {
-  color: #98c379;
+  color: #9da5b4;
+}
+
+.sidebar-directory svg {
+  color: #e5c07b;
 }
 
 .sidebar-directory:hover {
-  color: #b5e890;
+  background-color: #2c313a;
 }
 
 .sidebar-empty {
@@ -177,13 +193,6 @@ button, input, textarea, a, [role="button"] {
 }
 
 /* Editor container - takes up all available space */
-#editor-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 #editor-container {
   flex: 1;
   overflow: hidden;
@@ -269,6 +278,7 @@ button, input, textarea, a, [role="button"] {
 }
 
 /* Tag sidebar */
+.tag-sidebar-container,
 #tag-sidebar {
   width: 220px;
   flex-shrink: 0;
@@ -276,6 +286,13 @@ button, input, textarea, a, [role="button"] {
   border-left: 1px solid #181a1f;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.tag-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow: hidden;
 }
 

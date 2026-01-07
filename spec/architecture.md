@@ -69,12 +69,22 @@ The main process should be kept minimal. Heavy computation should be offloaded t
 
 ### Renderer Process (`src/renderer/`)
 
-- **index.ts**: Entry point, App class initialization
+The renderer uses **React** with functional components and hooks.
+
+- **index.tsx**: Entry point, mounts React app to `#root`
+- **components/App.tsx**: Root application component
 - **editor/**: CodeMirror configuration and extensions
-- **sidebar/Sidebar.ts**: File explorer tree component
-- **tabs/TabBar.ts**: Tab bar component for open files
+- **sidebar/Sidebar.tsx**: File explorer tree component (React)
+- **tabs/TabBar.tsx**: Tab bar component for open files (React)
+- **tags/TagSidebar.tsx**: Workspace tags sidebar (React)
 - **state/AppState.ts**: Application state management (pub/sub) with tab support
 - **styles/**: CSS (plain CSS, no preprocessor)
+
+**React Integration:**
+- Vite is configured with `@vitejs/plugin-react` for JSX transform
+- Components use hooks (`useState`, `useEffect`, `useCallback`) for state and lifecycle
+- CodeMirror is integrated via `useRef` and `useEffect` for imperative control
+- Components subscribe to `AppState` for shared state (files, tabs, workspace)
 
 The renderer has no Node.js access. It communicates with main via `window.api`.
 

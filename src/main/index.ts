@@ -14,6 +14,22 @@ import { createMainWindow } from './windows/mainWindow';
 import { registerIpcHandlers } from './ipc/handlers';
 import { setupApplicationMenu } from './menu/appMenu';
 
+// Handle EPIPE errors gracefully (happens when stdout is piped and closed early)
+process.stdout?.on('error', (err) => {
+  if (err.code === 'EPIPE') {
+    // Ignore - pipe was closed
+    return;
+  }
+  throw err;
+});
+
+process.stderr?.on('error', (err) => {
+  if (err.code === 'EPIPE') {
+    return;
+  }
+  throw err;
+});
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();

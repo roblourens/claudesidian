@@ -12,6 +12,7 @@ import {
   Completion,
   acceptCompletion
 } from '@codemirror/autocomplete';
+import { Prec } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 
 /**
@@ -27,10 +28,11 @@ export interface TagAutocompleteOptions {
  */
 export function tagAutocomplete(options: TagAutocompleteOptions) {
   return [
-    // Tab keymap for accepting completions
-    keymap.of([
+    // Tab keymap for accepting completions - use highest precedence
+    // so it runs before indentWithTab when autocomplete is active
+    Prec.highest(keymap.of([
       { key: 'Tab', run: acceptCompletion },
-    ]),
+    ])),
     autocompletion({
       override: [
         async (context: CompletionContext): Promise<CompletionResult | null> => {

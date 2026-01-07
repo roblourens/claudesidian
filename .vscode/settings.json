@@ -22,6 +22,10 @@
         "/^npm run make 2>&1 \\| tail -5 && npx playwright test tests/tags\\.spec\\.ts --reporter=dot 2>&1 \\|\\| true$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "/^rm \\/Users\\/roblou\\/code\\/notes-app\\/": {
+            "approve": true
+        },
+        "npm install": true
     }
 }

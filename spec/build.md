@@ -9,7 +9,7 @@ The project uses Electron Forge with the Vite plugin for fast builds.
 - `forge.config.ts` - Electron Forge configuration
 - `vite.main.config.ts` - Main process build
 - `vite.preload.config.ts` - Preload script build
-- `vite.renderer.config.ts` - Renderer build (used by Forge)
+- `vite.renderer.config.mts` - Renderer build with React plugin (ESM format)
 - `vite.web.config.ts` - Standalone browser dev server
 
 ### Entry Points
@@ -18,7 +18,7 @@ The project uses Electron Forge with the Vite plugin for fast builds.
 forge.config.ts defines:
   main: src/main/index.ts
   preload: src/preload/index.ts
-  renderer: index.html → src/renderer/index.ts
+  renderer: index.html → src/renderer/index.tsx (React)
 ```
 
 ## Browser Dev Mode
