@@ -26,8 +26,7 @@ const IMAGE_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
 class ImageWidget extends WidgetType {
   constructor(
     readonly src: string,
-    readonly alt: string,
-    readonly workspaceRoot: string | null
+    readonly alt: string
   ) {
     super();
   }
@@ -45,14 +44,17 @@ class ImageWidget extends WidgetType {
     img.alt = this.alt;
     img.title = this.alt || this.src;
 
-    // Handle relative paths - resolve against workspace
+    // Handle relative paths - resolve against workspace using custom protocol
     let src = this.src;
     if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
-      // For relative paths, we need to use file:// protocol
-      if (this.workspaceRoot && !src.startsWith('/')) {
-        src = `file://${this.workspaceRoot}/${src}`;
-      } else if (src.startsWith('/')) {
-        src = `file://${src}`;
+      // Use custom workspace-file:// protocol for local files
+      // This protocol is handled by the main process and serves files from workspace
+      if (!src.startsWith('/')) {
+        // Relative path - use workspace protocol
+        src = `workspace-file:///${src}`;
+      } else {
+        // Absolute path - still use workspace protocol but with full path
+        src = `workspace-file://${src}`;
       }
     }
 
@@ -60,6 +62,7 @@ class ImageWidget extends WidgetType {
 
     // Add error handling for failed loads
     img.onerror = () => {
+      console.error('Image load failed:', src);
       container.classList.add('cm-image-error');
       const errorText = document.createElement('span');
       errorText.className = 'cm-image-error-text';
@@ -134,10 +137,7 @@ function overlapsWithCursorLine(
 /**
  * Create image decorations for the document.
  */
-function createImageDecorations(
-  view: EditorView,
-  workspaceRoot: string | null
-): DecorationSet {
+function createImageDecorations(view: EditorView): DecorationSet {
   const decorations: Range<Decoration>[] = [];
   const cursorLine = getCursorLineRange(view);
   const doc = view.state.doc;
@@ -156,7 +156,7 @@ function createImageDecorations(
       // Replace the entire image syntax with a widget
       decorations.push(
         Decoration.replace({
-          widget: new ImageWidget(image.src, image.alt, workspaceRoot),
+          widget: new ImageWidget(image.src, image.alt),
         }).range(image.from, image.to)
       );
     }
@@ -166,40 +166,19 @@ function createImageDecorations(
 }
 
 /**
- * Get workspace root from the window API if available.
- */
-async function getWorkspaceRoot(): Promise<string | null> {
-  if (typeof window !== 'undefined' && 'api' in window) {
-    try {
-      return await (window as unknown as { api: { getWorkspaceRoot: () => Promise<string | null> } }).api.getWorkspaceRoot();
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-/**
  * ViewPlugin that manages image decorations.
  */
 const imageDecorationPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
-    workspaceRoot: string | null = null;
 
     constructor(view: EditorView) {
-      this.decorations = Decoration.none;
-      // Initialize workspace root asynchronously
-      getWorkspaceRoot().then((root) => {
-        this.workspaceRoot = root;
-        this.decorations = createImageDecorations(view, this.workspaceRoot);
-        view.requestMeasure();
-      });
+      this.decorations = createImageDecorations(view);
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged) {
-        this.decorations = createImageDecorations(update.view, this.workspaceRoot);
+      if (update.docChanged || update.selectionSet || update.viewportChanged || update.transactions.length > 0) {
+        this.decorations = createImageDecorations(update.view);
       }
     }
   },

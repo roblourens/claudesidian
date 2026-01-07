@@ -21,6 +21,13 @@ const VISIBLE_EXTENSIONS = new Set([
   '.json',
   '.yaml',
   '.yml',
+  // Image formats
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.svg',
 ]);
 
 /**

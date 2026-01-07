@@ -1,8 +1,8 @@
 {
-  "name": "notes-app",
-  "productName": "notes-app",
+  "name": "opusidian",
+  "productName": "Opusidian",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "A markdown note-taking app with wikilinks, tags, and images",
   "main": ".vite/build/index.js",
   "scripts": {
     "start": "electron-forge start",

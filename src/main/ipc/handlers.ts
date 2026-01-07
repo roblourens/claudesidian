@@ -200,7 +200,7 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
         const window = getFocusedWindow();
         if (window) {
           const workspaceName = lastWorkspace.split('/').pop() ?? 'Notes';
-          window.setTitle(`${workspaceName} - Claudesidian`);
+          window.setTitle(`${workspaceName} - Opusidian`);
         }
         
         return lastWorkspace;
