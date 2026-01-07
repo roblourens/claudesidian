@@ -61,7 +61,7 @@ test('should display tabs horizontally when files are opened', async () => {
   
   // Check if tab bar is visible
   const tabBar = window.locator('#tab-bar');
-  let tabBarDisplay = await tabBar.evaluate((el) => globalThis.getComputedStyle(el).display);
+  const tabBarDisplay = await tabBar.evaluate((el) => globalThis.getComputedStyle(el).display);
   console.log('Tab bar display after sending menu:newFile:', tabBarDisplay);
   
   // Check for tabs

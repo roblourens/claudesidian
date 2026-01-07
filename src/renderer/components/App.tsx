@@ -111,10 +111,13 @@ export function App(): React.ReactElement {
    * Navigate to a wikilink target file.
    * Opens the file if it exists, or creates a new file if it doesn't.
    */
-  const navigateToWikilink = useCallback(async (target: string, _heading?: string): Promise<void> => {
+  const navigateToWikilink = useCallback(async (target: string, heading?: string): Promise<void> => {
     if (!isElectron() || !editorRef.current) return;
 
     try {
+      // TODO: Use heading parameter to scroll to specific heading after navigation
+      void heading;
+      
       // Try to find the file in the workspace
       const filePath = await window.api.findFileByName(target);
 

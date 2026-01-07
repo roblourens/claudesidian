@@ -17,10 +17,10 @@ import type { OpenFileDialogOptions, OpenFolderDialogOptions } from '../../share
  * Validate that an IPC event comes from a trusted source.
  * This helps prevent attacks from malicious renderer content.
  */
-function validateSender(_event: IpcMainInvokeEvent): boolean {
+function validateSender(event: IpcMainInvokeEvent): boolean {
   // In development, allow all senders
-  // In production, you would check event.senderFrame.url
-  // against your app's expected URLs
+  // In production, check event.senderFrame.url against app's expected URLs
+  void event; // Reserved for future security checks
   return true;
 }
 
@@ -92,7 +92,8 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
     
-    const result = await dialog.showOpenDialog(getFocusedWindow()!, {
+    const win = getFocusedWindow();
+    const result = await dialog.showOpenDialog(win ?? BrowserWindow.getAllWindows()[0], {
       title: options?.title ?? 'Open File',
       properties: ['openFile'],
       filters: options?.filters ?? [
@@ -114,7 +115,8 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
 
-    const result = await dialog.showSaveDialog(getFocusedWindow()!, {
+    const win = getFocusedWindow();
+    const result = await dialog.showSaveDialog(win ?? BrowserWindow.getAllWindows()[0], {
       title: options?.title ?? 'Save File',
       filters: options?.filters ?? [
         { name: 'Markdown', extensions: ['md'] },
@@ -139,7 +141,8 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
 
-    const result = await dialog.showOpenDialog(getFocusedWindow()!, {
+    const win = getFocusedWindow();
+    const result = await dialog.showOpenDialog(win ?? BrowserWindow.getAllWindows()[0], {
       title: options?.title ?? 'Open Folder',
       properties: ['openDirectory', 'createDirectory'],
     });

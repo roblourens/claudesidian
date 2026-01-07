@@ -20,7 +20,7 @@ import { getWorkspaceRoot } from './services/workspaceService';
 app.setName('Opusidian');
 
 // Handle EPIPE errors gracefully (happens when stdout is piped and closed early)
-process.stdout?.on('error', (err) => {
+process.stdout?.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EPIPE') {
     // Ignore - pipe was closed
     return;
@@ -28,7 +28,7 @@ process.stdout?.on('error', (err) => {
   throw err;
 });
 
-process.stderr?.on('error', (err) => {
+process.stderr?.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EPIPE') {
     return;
   }
