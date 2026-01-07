@@ -58,8 +58,6 @@ function createPasteHandler(view: EditorView, options: ImagePasteOptions) {
     // Look for image items in clipboard
     for (const item of Array.from(items)) {
       if (item.type.startsWith('image/')) {
-        event.preventDefault();
-
         const file = item.getAsFile();
         if (!file) continue;
 
@@ -83,7 +81,11 @@ function createPasteHandler(view: EditorView, options: ImagePasteOptions) {
             });
           } else {
             console.error('Failed to save image:', result.error);
-            // Optionally show an error to the user
+            // Insert a placeholder with error message
+            const pos = view.state.selection.main.head;
+            view.dispatch({
+              changes: { from: pos, insert: `![Image save failed: ${result.error}]()` },
+            });
           }
         } catch (err) {
           console.error('Error processing pasted image:', err);
