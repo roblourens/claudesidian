@@ -231,6 +231,13 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     return workspaceService.findFileByName(filename);
   });
 
+  ipcMain.handle('workspace:saveImage', async (event, filename: string, base64Data: string) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return workspaceService.saveImage(filename, base64Data);
+  });
+
   ipcMain.handle('workspace:isOpen', (event) => {
     if (!validateSender(event)) {
       throw new Error('Unauthorized');

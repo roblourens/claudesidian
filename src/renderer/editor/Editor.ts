@@ -16,6 +16,8 @@ import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
 import { tagDecorations, tagTheme } from './extensions/tagDecorations';
 import { tagAutocomplete } from './extensions/tagAutocomplete';
 import { wikilinkDecorations, wikilinkTheme } from './extensions/wikilinkDecorations';
+import { imageDecorations, imageTheme } from './extensions/imageDecorations';
+import { imagePasteHandler } from './extensions/imagePasteHandler';
 
 /**
  * Options for creating an editor.
@@ -31,6 +33,8 @@ export interface EditorOptions {
   onWikilinkClick?: (target: string, heading?: string) => void;
   /** Function to get all available tags for autocomplete */
   getTags?: () => Promise<string[]>;
+  /** Function to save an image and return its relative path */
+  saveImage?: (filename: string, base64Data: string) => Promise<{ success: boolean; data?: string; error?: string }>;
 }
 
 /**
@@ -83,6 +87,13 @@ function createExtensions(options?: EditorOptions) {
       onLinkClick: options?.onWikilinkClick,
     }),
     wikilinkTheme,
+
+    // Image decorations (inline image display)
+    ...imageDecorations(),
+    imageTheme,
+
+    // Image paste handler (if saveImage function provided)
+    ...(options?.saveImage ? [imagePasteHandler({ saveImage: options.saveImage })] : []),
 
     // Tag autocomplete (if getTags function provided)
     ...(options?.getTags ? tagAutocomplete({ getTags: options.getTags }) : []),

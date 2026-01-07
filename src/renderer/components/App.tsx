@@ -165,6 +165,19 @@ export function App(): React.ReactElement {
     }
   }, []);
 
+  /**
+   * Save an image to the workspace assets folder.
+   */
+  const saveImage = useCallback(async (
+    filename: string,
+    base64Data: string
+  ): Promise<{ success: boolean; data?: string; error?: string }> => {
+    if (!isElectron()) {
+      return { success: false, error: 'Image saving not supported in browser mode' };
+    }
+    return window.api.saveImage(filename, base64Data);
+  }, []);
+
   // Initialize editor
   useEffect(() => {
     if (!editorContainerRef.current) return;
@@ -174,6 +187,7 @@ export function App(): React.ReactElement {
       onTagClick: showTaggedParagraphs,
       onWikilinkClick: navigateToWikilink,
       getTags: getAllTagNames,
+      saveImage,
     });
     editorRef.current = editor;
     editor.focus();
@@ -188,7 +202,7 @@ export function App(): React.ReactElement {
     return () => {
       editor.destroy();
     };
-  }, [onEditorContentChange, showTaggedParagraphs, navigateToWikilink, getAllTagNames]);
+  }, [onEditorContentChange, showTaggedParagraphs, navigateToWikilink, getAllTagNames, saveImage]);
 
   // Subscribe to workspace changes
   useEffect(() => {

@@ -206,3 +206,44 @@ export async function findFileByName(filename: string): Promise<string | null> {
 
   return searchDirectory(currentWorkspaceRoot);
 }
+
+/**
+ * Save an image to the workspace assets folder.
+ * Creates the assets folder if it doesn't exist.
+ * 
+ * @param filename - The filename for the image (e.g., "paste-123456.png")
+ * @param base64Data - The image data as base64 string
+ * @returns Result with the relative path to the saved image
+ */
+export async function saveImage(
+  filename: string,
+  base64Data: string
+): Promise<FileOperationResult<string>> {
+  if (!currentWorkspaceRoot) {
+    return {
+      success: false,
+      error: 'No workspace is open',
+    };
+  }
+
+  try {
+    // Create assets directory if it doesn't exist
+    const assetsDir = path.join(currentWorkspaceRoot, 'assets');
+    await fs.mkdir(assetsDir, { recursive: true });
+
+    // Sanitize filename
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const imagePath = path.join(assetsDir, safeName);
+
+    // Decode base64 and write file
+    const buffer = Buffer.from(base64Data, 'base64');
+    await fs.writeFile(imagePath, buffer);
+
+    // Return relative path for markdown
+    const relativePath = `assets/${safeName}`;
+    return { success: true, data: relativePath };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : 'Unknown error saving image';
+    return { success: false, error };
+  }
+}

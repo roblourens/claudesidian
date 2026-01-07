@@ -121,6 +121,9 @@ export interface IpcChannels {
   /** Find a file by name (case-insensitive) within the workspace. Returns absolute path or null. */
   'workspace:findFile': { args: [filename: string]; return: string | null };
 
+  /** Save an image to the workspace assets folder. Returns relative path to the saved image. */
+  'workspace:saveImage': { args: [filename: string, base64Data: string]; return: FileOperationResult<string> };
+
   /** Check if a workspace is currently open. */
   'workspace:isOpen': { args: []; return: boolean };
 

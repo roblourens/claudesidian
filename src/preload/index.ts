@@ -126,6 +126,16 @@ const api = {
   },
 
   /**
+   * Save an image to the workspace assets folder.
+   * @param filename - The filename for the image (e.g., "paste-123456.png")
+   * @param base64Data - The image data as base64 string
+   * @returns Result with the relative path to the saved image
+   */
+  saveImage: (filename: string, base64Data: string): Promise<FileOperationResult<string>> => {
+    return ipcRenderer.invoke('workspace:saveImage', filename, base64Data);
+  },
+
+  /**
    * Check if a workspace is currently open.
    */
   isWorkspaceOpen: (): Promise<boolean> => {
