@@ -118,6 +118,9 @@ export interface IpcChannels {
   /** List files in a directory within the workspace. */
   'workspace:listFiles': { args: [relativePath?: string]; return: FileOperationResult<FileEntry[]> };
 
+  /** Find a file by name (case-insensitive) within the workspace. Returns absolute path or null. */
+  'workspace:findFile': { args: [filename: string]; return: string | null };
+
   /** Check if a workspace is currently open. */
   'workspace:isOpen': { args: []; return: boolean };
 

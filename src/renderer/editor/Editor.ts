@@ -15,6 +15,7 @@ import { baseTheme } from './themes/baseTheme';
 import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
 import { tagDecorations, tagTheme } from './extensions/tagDecorations';
 import { tagAutocomplete } from './extensions/tagAutocomplete';
+import { wikilinkDecorations, wikilinkTheme } from './extensions/wikilinkDecorations';
 
 /**
  * Options for creating an editor.
@@ -26,6 +27,8 @@ export interface EditorOptions {
   onContentChange?: (content: string) => void;
   /** Callback when a tag is clicked */
   onTagClick?: (tag: string) => void;
+  /** Callback when a wikilink is clicked */
+  onWikilinkClick?: (target: string, heading?: string) => void;
   /** Function to get all available tags for autocomplete */
   getTags?: () => Promise<string[]>;
 }
@@ -75,6 +78,12 @@ function createExtensions(options?: EditorOptions) {
     }),
     tagTheme,
 
+    // Wikilink decorations and theme
+    wikilinkDecorations({
+      onLinkClick: options?.onWikilinkClick,
+    }),
+    wikilinkTheme,
+
     // Tag autocomplete (if getTags function provided)
     ...(options?.getTags ? tagAutocomplete({ getTags: options.getTags }) : []),
 
@@ -86,10 +95,11 @@ function createExtensions(options?: EditorOptions) {
 
   // Add update listener if callback provided
   if (options?.onContentChange) {
+    const callback = options.onContentChange;
     extensions.push(
       EditorView.updateListener.of((update: ViewUpdate) => {
         if (update.docChanged) {
-          options.onContentChange!(update.state.doc.toString());
+          callback(update.state.doc.toString());
         }
       })
     );

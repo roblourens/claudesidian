@@ -224,6 +224,13 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     return workspaceService.listFiles(relativePath ?? '', 1);
   });
 
+  ipcMain.handle('workspace:findFile', async (event, filename: string) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return workspaceService.findFileByName(filename);
+  });
+
   ipcMain.handle('workspace:isOpen', (event) => {
     if (!validateSender(event)) {
       throw new Error('Unauthorized');

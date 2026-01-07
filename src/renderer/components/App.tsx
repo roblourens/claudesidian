@@ -92,6 +92,70 @@ export function App(): React.ReactElement {
   }, []);
 
   /**
+   * Navigate to a wikilink target file.
+   * Opens the file if it exists, or creates a new file if it doesn't.
+   */
+  const navigateToWikilink = useCallback(async (target: string, _heading?: string): Promise<void> => {
+    if (!isElectron() || !editorRef.current) return;
+
+    try {
+      // Try to find the file in the workspace
+      const filePath = await window.api.findFileByName(target);
+
+      if (filePath) {
+        // File exists - open it
+        // Check if already open in a tab
+        const existingTab = AppState.findTabByPath(filePath);
+        if (existingTab) {
+          AppState.setActiveTab(existingTab.id);
+          setContent(editorRef.current, existingTab.content);
+          editorRef.current.focus();
+          return;
+        }
+
+        // Read and open the file
+        const result = await window.api.readFile(filePath);
+        if (result.success && result.data !== undefined) {
+          const tabId = AppState.openTab(filePath, result.data);
+          AppState.setActiveTab(tabId);
+          setContent(editorRef.current, result.data);
+          editorRef.current.focus();
+        } else {
+          console.error('Failed to open file:', result.error);
+        }
+      } else {
+        // File doesn't exist - create a new file with this name
+        const workspaceRoot = await window.api.getWorkspaceRoot();
+        if (!workspaceRoot) {
+          console.error('No workspace open');
+          return;
+        }
+
+        // Create the file path
+        const newFilename = target.endsWith('.md') ? target : `${target}.md`;
+        const newFilePath = `${workspaceRoot}/${newFilename}`;
+
+        // Create a new tab with initial content
+        const initialContent = `# ${target}\n\n`;
+        const tabId = AppState.openTab(newFilePath, initialContent);
+        AppState.setActiveTab(tabId);
+        setContent(editorRef.current, initialContent);
+        editorRef.current.focus();
+
+        // Mark as dirty so user can save
+        AppState.updateTabContent(tabId, initialContent);
+
+        console.log(`Created new note: ${newFilePath}`);
+      }
+
+      // TODO: If heading is provided, scroll to it
+
+    } catch (error) {
+      console.error(`Failed to navigate to [[${target}]]:`, error);
+    }
+  }, []);
+
+  /**
    * Handle editor content changes.
    */
   const onEditorContentChange = useCallback((content: string): void => {
@@ -108,6 +172,7 @@ export function App(): React.ReactElement {
     const editor = createEditor(editorContainerRef.current, {
       onContentChange: onEditorContentChange,
       onTagClick: showTaggedParagraphs,
+      onWikilinkClick: navigateToWikilink,
       getTags: getAllTagNames,
     });
     editorRef.current = editor;
@@ -123,7 +188,7 @@ export function App(): React.ReactElement {
     return () => {
       editor.destroy();
     };
-  }, [onEditorContentChange, showTaggedParagraphs, getAllTagNames]);
+  }, [onEditorContentChange, showTaggedParagraphs, navigateToWikilink, getAllTagNames]);
 
   // Subscribe to workspace changes
   useEffect(() => {

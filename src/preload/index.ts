@@ -117,6 +117,15 @@ const api = {
   },
 
   /**
+   * Find a file by name within the workspace.
+   * @param filename - The filename to search for (with or without .md extension)
+   * @returns Absolute path to the file, or null if not found
+   */
+  findFileByName: (filename: string): Promise<string | null> => {
+    return ipcRenderer.invoke('workspace:findFile', filename);
+  },
+
+  /**
    * Check if a workspace is currently open.
    */
   isWorkspaceOpen: (): Promise<boolean> => {

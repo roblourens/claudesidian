@@ -158,3 +158,51 @@ export async function listFiles(
     return { success: false, error };
   }
 }
+
+/**
+ * Find a file by name within the workspace (case-insensitive).
+ * Searches recursively through all visible directories.
+ * 
+ * @param filename - The filename to search for (with or without extension)
+ * @returns Absolute path to the file, or null if not found
+ */
+export async function findFileByName(filename: string): Promise<string | null> {
+  if (!currentWorkspaceRoot) {
+    return null;
+  }
+
+  // Normalize filename - add .md extension if not present
+  const searchName = filename.toLowerCase();
+  const searchNameMd = searchName.endsWith('.md') ? searchName : `${searchName}.md`;
+
+  async function searchDirectory(dirPath: string): Promise<string | null> {
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const entryPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+          // Skip hidden directories
+          if (!isVisibleDirectory(entry.name)) continue;
+
+          // Recursively search subdirectories
+          const found = await searchDirectory(entryPath);
+          if (found) return found;
+        } else {
+          // Check if filename matches (case-insensitive)
+          const entryNameLower = entry.name.toLowerCase();
+          if (entryNameLower === searchName || entryNameLower === searchNameMd) {
+            return entryPath;
+          }
+        }
+      }
+    } catch {
+      // Ignore errors reading directories
+    }
+
+    return null;
+  }
+
+  return searchDirectory(currentWorkspaceRoot);
+}
