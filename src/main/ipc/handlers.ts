@@ -141,10 +141,12 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     // Persist the workspace path
     await persistenceService.setLastWorkspace(folderPath);
     
-    // Build tag index for the workspace (async, doesn't block)
-    tagIndexService.buildIndex().catch(err => {
+    // Build tag index for the workspace (await to ensure it's ready)
+    try {
+      await tagIndexService.buildIndex();
+    } catch (err) {
       console.error('Failed to build tag index:', err);
-    });
+    }
     
     // Start file watcher for the workspace
     fileWatcherService.startWatching(folderPath);
@@ -171,10 +173,12 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       if (exists) {
         workspaceService.setWorkspaceRoot(lastWorkspace);
         
-        // Build tag index for the workspace (async, doesn't block)
-        tagIndexService.buildIndex().catch(err => {
+        // Build tag index for the workspace (await to ensure it's ready)
+        try {
+          await tagIndexService.buildIndex();
+        } catch (err) {
           console.error('Failed to build tag index:', err);
-        });
+        }
         
         // Start file watcher for the workspace
         fileWatcherService.startWatching(lastWorkspace);

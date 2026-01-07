@@ -75,15 +75,16 @@ export function tagDecorations(options?: TagDecorationOptions) {
     
     // Handle click events on tags
     eventHandlers: {
-      mousedown: (event) => {
+      click: (event) => {
         const target = event.target as HTMLElement;
         if (target.classList.contains('cm-tag')) {
           const tag = target.getAttribute('data-tag');
           if (tag && options?.onTagClick) {
+            event.preventDefault();
+            event.stopPropagation();
             options.onTagClick(tag);
+            return true;
           }
-          event.preventDefault();
-          return true;
         }
         return false;
       },

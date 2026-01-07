@@ -252,6 +252,12 @@ class App {
           AppState.setWorkspace(workspacePath, []);
         }
         console.log('Restored workspace:', workspacePath);
+        
+        // Explicitly update tag sidebar after workspace restore
+        // The index is built before this returns, so tags should be ready
+        if (this.tagSidebar) {
+          await this.tagSidebar.updateTags();
+        }
       }
     } catch (error) {
       console.error('Failed to restore workspace:', error);
@@ -369,6 +375,12 @@ class App {
       } else {
         console.error('Failed to list files:', result.error);
         AppState.setWorkspace(folderPath, []);
+      }
+      
+      // Explicitly update tag sidebar after opening workspace
+      // The index is built before openWorkspace returns, so tags should be ready
+      if (this.tagSidebar) {
+        await this.tagSidebar.updateTags();
       }
     }
   }
