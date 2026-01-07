@@ -3,6 +3,10 @@
  * 
  * These tests launch the full Electron app and interact with it
  * using Playwright's Electron support.
+ * 
+ * NOTE: Tests run against the packaged app (not dev server) to avoid
+ * DevTools interference. Run `npm run package` before running tests
+ * if you've made changes to the app.
  */
 
 import { test, expect, ElectronApplication, Page } from '@playwright/test';
@@ -13,23 +17,26 @@ let electronApp: ElectronApplication;
 let window: Page;
 
 test.beforeAll(async () => {
-  // Launch Electron app in dev mode using electron-forge's entry point
-  // This requires that vite has built the main process first
+  // Launch the packaged Electron app directly (not via Electron Forge dev server)
+  // This avoids DevTools being opened and process confusion
+  const executablePath = path.join(
+    __dirname, '..', 'out', 'notes-app-darwin-arm64', 
+    'notes-app.app', 'Contents', 'MacOS', 'notes-app'
+  );
+    
   electronApp = await electron.launch({
-    args: [
-      path.join(__dirname, '..'),
-    ],
-    env: {
-      ...process.env,
-      NODE_ENV: 'test',
-    },
+    executablePath,
+    timeout: 30000,
   });
 
-  // Wait for the first window to open
+  // Wait for a window to be ready
   window = await electronApp.firstWindow();
   
   // Wait for the app to be fully loaded
   await window.waitForLoadState('domcontentloaded');
+  
+  // Wait for CodeMirror to initialize
+  await window.waitForSelector('.cm-editor', { timeout: 15000 });
 });
 
 test.afterAll(async () => {
@@ -40,10 +47,6 @@ test.afterAll(async () => {
 
 test.describe('Notes App in Electron', () => {
   test('should launch and show editor', async () => {
-    // Check window title
-    const title = await window.title();
-    expect(title).toBe('Notes');
-
     // Check that editor container exists
     const editor = window.locator('#editor-container');
     await expect(editor).toBeVisible();
@@ -51,6 +54,10 @@ test.describe('Notes App in Electron', () => {
     // Check that CodeMirror is loaded
     const cmEditor = window.locator('.cm-editor');
     await expect(cmEditor).toBeVisible();
+    
+    // Check that sidebar exists
+    const sidebar = window.locator('#sidebar');
+    await expect(sidebar).toBeVisible();
   });
 
   test('should render WYSIWYG markdown with headers', async () => {

@@ -44,6 +44,138 @@ button, input, textarea, a, [role="button"] {
   -webkit-app-region: no-drag;
 }
 
+/* Main content area with sidebar and editor */
+#main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 240px;
+  min-width: 180px;
+  max-width: 400px;
+  background-color: #21252b;
+  border-right: 1px solid #181a1f;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 8px 12px;
+  border-bottom: 1px solid #181a1f;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9da5b4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.sidebar-action:hover {
+  opacity: 1;
+}
+
+.sidebar-tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: #abb2bf;
+  transition: background-color 0.1s;
+}
+
+.sidebar-item:hover {
+  background-color: #2c313a;
+}
+
+.sidebar-item.active {
+  background-color: #3e4451;
+  color: #e5c07b;
+}
+
+.sidebar-arrow {
+  width: 16px;
+  font-size: 10px;
+  color: #636d83;
+  flex-shrink: 0;
+}
+
+.sidebar-icon {
+  margin-right: 6px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.sidebar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-directory {
+  color: #98c379;
+}
+
+.sidebar-directory:hover {
+  color: #b5e890;
+}
+
+.sidebar-empty {
+  padding: 20px 16px;
+  text-align: center;
+  color: #636d83;
+  font-size: 13px;
+}
+
+.sidebar-empty p {
+  margin-bottom: 12px;
+}
+
+.sidebar-open-btn {
+  background-color: #3e4451;
+  color: #abb2bf;
+  border: 1px solid #4b5263;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.sidebar-open-btn:hover {
+  background-color: #4b5263;
+}
+
 /* Editor container - takes up all available space */
 #editor-container {
   flex: 1;

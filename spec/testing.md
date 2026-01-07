@@ -4,15 +4,19 @@
 
 Tests are in the `tests/` directory. Playwright's Electron support allows:
 
-- Launching the full app: `electron.launch({ args: ['.'] })`
+- Launching the packaged app: `electron.launch({ executablePath: '...' })`
 - Interacting with windows: `app.firstWindow()`
 - Testing main process: `app.evaluate(({ app }) => app.getVersion())`
+
+**Important**: Tests run against the packaged app (not dev server) to avoid DevTools interference and process spawning issues with Electron Forge. The fuse `EnableNodeCliInspectArguments` must be enabled for Playwright debugging to work.
 
 ## Test Structure
 
 ```typescript
 test.beforeAll(async () => {
-  electronApp = await electron.launch({ args: [path.join(__dirname, '..')] });
+  const executablePath = path.join(__dirname, '..', 'out', 'notes-app-darwin-arm64', 
+    'notes-app.app', 'Contents', 'MacOS', 'notes-app');
+  electronApp = await electron.launch({ executablePath, timeout: 30000 });
   window = await electronApp.firstWindow();
 });
 
@@ -36,6 +40,7 @@ test('example', async () => {
 ## Running Tests
 
 ```bash
+npm run package             # Build the app first (required!)
 npm test                    # All tests
 npm run test:electron       # Just Electron tests
 npx playwright show-report  # View HTML report after failure
@@ -49,3 +54,5 @@ Test configuration is in `playwright.config.ts`:
 - Sequential tests (workers: 1) for Electron stability
 - Screenshots, video, and trace captured on failure
 - HTML reporter for test results
+
+The `forge.config.ts` includes `EnableNodeCliInspectArguments: true` to allow Playwright's debugging connection.

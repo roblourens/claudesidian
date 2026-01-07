@@ -51,7 +51,8 @@ webPreferences: {
 - **index.ts**: Application lifecycle, IPC registration
 - **windows/mainWindow.ts**: Window creation with secure defaults
 - **ipc/handlers.ts**: All `ipcMain.handle()` registrations
-- **services/**: Business logic (file operations, settings, etc.)
+- **services/fileService.ts**: File read/write with path validation
+- **services/workspaceService.ts**: Workspace state and directory listing
 
 The main process should be kept minimal. Heavy computation should be offloaded to worker threads.
 
@@ -68,15 +69,17 @@ The main process should be kept minimal. Heavy computation should be offloaded t
 
 ### Renderer Process (`src/renderer/`)
 
-- **index.ts**: Entry point, initializes editor
+- **index.ts**: Entry point, App class initialization
 - **editor/**: CodeMirror configuration and extensions
+- **sidebar/Sidebar.ts**: File explorer tree component
+- **state/AppState.ts**: Application state management (pub/sub)
 - **styles/**: CSS (plain CSS, no preprocessor)
 
 The renderer has no Node.js access. It communicates with main via `window.api`.
 
 ### Shared Types (`src/shared/`)
 
-- **types/ipc.ts**: IPC channel type definitions
+- **types/ipc.ts**: IPC channel type definitions, FileEntry, FileOperationResult
 - **types/**: Other cross-process type definitions
 
 Types here are imported by both main and renderer code.
