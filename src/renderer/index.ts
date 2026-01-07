@@ -204,7 +204,7 @@ class App {
 
       // Build a virtual document with all tagged paragraphs
       const lines: string[] = [];
-      lines.push(`# ${tag}`);
+      lines.push(`# Tag: ${tag}`);
       lines.push('');
 
       for (const paragraph of paragraphs) {
