@@ -22,11 +22,12 @@ export interface TaggedParagraph {
 
 /**
  * Regular expression to match tags.
- * Matches #word where word is alphanumeric, dash, or underscore.
+ * Matches #word where word starts with a letter and can contain alphanumeric, dash, or underscore.
  * Must be preceded by whitespace or start of line.
  * Must be followed by whitespace, punctuation, or end of line.
+ * The letter requirement prevents matching markdown headings like "# Heading".
  */
-const TAG_REGEX = /(?:^|\s)(#[a-zA-Z0-9_-]+)(?=\s|[.,!?;:]|$)/g;
+const TAG_REGEX = /(?:^|[\s])(#[a-zA-Z][a-zA-Z0-9_-]*)(?=\s|[.,!?;:]|$)/g;
 
 /**
  * Extract all tags from text.

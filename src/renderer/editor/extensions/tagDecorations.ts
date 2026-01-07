@@ -11,8 +11,10 @@ import { RangeSetBuilder } from '@codemirror/state';
 /**
  * Regex to find tags in text.
  * Must match the same pattern as tagParser.ts
+ * Tags must be preceded by whitespace or start of string, and the # must be
+ * immediately followed by alphanumeric characters (not another # or space).
  */
-const TAG_REGEX = /(?:^|\s)(#[a-zA-Z0-9_-]+)(?=\s|[.,!?;:]|$)/g;
+const TAG_REGEX = /(?:^|[\s])(#[a-zA-Z][a-zA-Z0-9_-]*)(?=\s|[.,!?;:]|$)/g;
 
 /**
  * Options for tag decoration.
