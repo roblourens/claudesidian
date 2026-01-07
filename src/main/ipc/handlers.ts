@@ -63,7 +63,20 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
     const workspaceRoot = workspaceService.getWorkspaceRoot();
-    return fileService.writeFile(filePath, content, workspaceRoot);
+    const result = await fileService.writeFile(filePath, content, workspaceRoot);
+    
+    // If write was successful and file is a markdown file, update tag index
+    if (result.success && (filePath.endsWith('.md') || filePath.endsWith('.markdown'))) {
+      // Update tag index for this file
+      await tagIndexService.updateFile(filePath);
+      // Notify renderers that tags have been updated
+      const windows = BrowserWindow.getAllWindows();
+      for (const window of windows) {
+        window.webContents.send('tags:updated');
+      }
+    }
+    
+    return result;
   });
 
   ipcMain.handle('file:exists', async (event, filePath: string) => {

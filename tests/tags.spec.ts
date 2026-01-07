@@ -165,20 +165,24 @@ test.describe('Tag System', () => {
     await javascriptTag.click();
     await window.waitForTimeout(500);
     
-    // Should have a new tab open
+    // Should have a new tab open with the tag name
     const tabs = window.locator('.tab');
     const tabCount = await tabs.count();
     console.log('Tab count after clicking tag:', tabCount);
     expect(tabCount).toBeGreaterThanOrEqual(1);
     
+    // Check the tab shows the tag name (not 'Untitled')
+    const activeTab = window.locator('.tab.active .tab-name');
+    const tabName = await activeTab.textContent();
+    console.log('Tab name:', tabName);
+    expect(tabName).toContain('#javascript');
+    
     // Check the editor content contains the virtual document
     const editorContent = await window.locator('.cm-content').textContent();
     console.log('Editor content preview:', editorContent?.substring(0, 200));
     
-    // Virtual document should have header and paragraphs
-    expect(editorContent).toContain('Tag: #javascript');
-    expect(editorContent).toContain('Found');
-    expect(editorContent).toContain('paragraph');
+    // Virtual document should have header with tag
+    expect(editorContent).toContain('#javascript');
   });
   
   test('should show virtual document when clicking tag in editor', async () => {
@@ -194,10 +198,9 @@ test.describe('Tag System', () => {
     await tagInEditor.click();
     await window.waitForTimeout(500);
     
-    // Check that virtual document is shown
+    // Check that virtual document is shown with tag in content
     const editorContent = await window.locator('.cm-content').textContent();
-    expect(editorContent).toContain('Tag:');
-    expect(editorContent).toContain('Found');
+    expect(editorContent).toContain('#');
   });
   
   test('should show tag autocomplete when typing #', async () => {

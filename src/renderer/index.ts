@@ -204,29 +204,26 @@ class App {
 
       // Build a virtual document with all tagged paragraphs
       const lines: string[] = [];
-      lines.push(`# Tag: #${tag}`);
-      lines.push('');
-      lines.push(`Found ${paragraphs.length} paragraph${paragraphs.length === 1 ? '' : 's'}`);
-      lines.push('');
-      lines.push('---');
+      lines.push(`# #${tag}`);
       lines.push('');
 
       for (const paragraph of paragraphs) {
-        // Add source file reference
-        lines.push(`### ${paragraph.relativePath}:${paragraph.startLine + 1}`);
+        // Add source file reference as a subtle header
+        lines.push(`> **${paragraph.relativePath}** (line ${paragraph.startLine + 1})`);
         lines.push('');
         
         // Add paragraph content
         lines.push(paragraph.text);
         lines.push('');
-        lines.push('---');
-        lines.push('');
       }
 
       const virtualContent = lines.join('\n');
       
-      // Create a new tab with the virtual document
-      const tabId = AppState.openTab(null, virtualContent);
+      // Create a new virtual tab (not saveable)
+      const tabId = AppState.openTab(null, virtualContent, {
+        title: `#${tag}`,
+        isVirtual: true,
+      });
       AppState.setActiveTab(tabId);
       setContent(this.editor, virtualContent);
       this.editor.focus();
@@ -333,6 +330,12 @@ class App {
     const activeTab = AppState.getActiveTab();
     if (!activeTab) return;
 
+    // Virtual documents cannot be saved
+    if (activeTab.isVirtual) {
+      console.log('Cannot save virtual document');
+      return;
+    }
+
     const content = getContent(this.editor);
     let filePath = activeTab.filePath;
 
@@ -355,6 +358,14 @@ class App {
     if (result.success) {
       AppState.markTabSaved(activeTab.id, content);
       console.log('File saved:', filePath);
+      
+      // Update tag index after saving
+      if (this.tagSidebar) {
+        // Small delay to let file system settle
+        setTimeout(() => {
+          this.tagSidebar?.updateTags();
+        }, 100);
+      }
     } else {
       console.error('Failed to save file:', result.error);
     }

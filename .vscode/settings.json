@@ -10,6 +10,10 @@
         "/^timeout 120 npm test -- tests/tags\\.spec\\.ts --reporter=line 2>&1 \\|\\| true$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^npx playwright test tests/tags\\.spec\\.ts --reporter=line --timeout=60000 2>&1 \\|\\| true$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

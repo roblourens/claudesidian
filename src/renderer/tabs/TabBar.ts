@@ -53,8 +53,8 @@ export class TabBar {
       // File name
       const nameEl = document.createElement('span');
       nameEl.className = 'tab-name';
-      nameEl.textContent = this.getFileName(tab.filePath);
-      if (tab.isDirty) {
+      nameEl.textContent = this.getTabDisplayName(tab);
+      if (tab.isDirty && !tab.isVirtual) {
         nameEl.textContent += ' •';
       }
       tabEl.appendChild(nameEl);
@@ -80,11 +80,14 @@ export class TabBar {
   }
 
   /**
-   * Get the file name from a path.
+   * Get the display name for a tab.
    */
-  private getFileName(filePath: string | null): string {
-    if (!filePath) return 'Untitled';
-    const parts = filePath.split(/[/\\]/);
+  private getTabDisplayName(tab: OpenTab): string {
+    // Use explicit title if set
+    if (tab.title) return tab.title;
+    // Otherwise derive from file path
+    if (!tab.filePath) return 'Untitled';
+    const parts = tab.filePath.split(/[/\\]/);
     return parts[parts.length - 1] || 'Untitled';
   }
 

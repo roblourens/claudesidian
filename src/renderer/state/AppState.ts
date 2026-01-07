@@ -17,12 +17,16 @@ export interface OpenTab {
   id: string;
   /** File path, or null for untitled */
   filePath: string | null;
+  /** Display title for the tab (used when filePath is null) */
+  title?: string;
   /** Content of the file */
   content: string;
   /** Original content when opened (for dirty detection) */
   originalContent: string;
   /** Whether the tab has unsaved changes */
   isDirty: boolean;
+  /** Whether this is a virtual/read-only document (not saveable) */
+  isVirtual?: boolean;
 }
 
 export interface AppStateData {
@@ -256,10 +260,20 @@ export function findTabByPath(filePath: string): OpenTab | null {
 }
 
 /**
+ * Options for opening a tab.
+ */
+export interface OpenTabOptions {
+  /** Display title for virtual documents */
+  title?: string;
+  /** Whether this is a virtual/read-only document */
+  isVirtual?: boolean;
+}
+
+/**
  * Open a file in a new tab or switch to existing tab.
  * @returns The tab ID
  */
-export function openTab(filePath: string | null, content: string): string {
+export function openTab(filePath: string | null, content: string, options?: OpenTabOptions): string {
   // Check if already open
   if (filePath) {
     const existing = findTabByPath(filePath);
@@ -273,9 +287,11 @@ export function openTab(filePath: string | null, content: string): string {
   const tab: OpenTab = {
     id: generateTabId(),
     filePath,
+    title: options?.title,
     content,
     originalContent: content,
     isDirty: false,
+    isVirtual: options?.isVirtual,
   };
 
   state.openTabs.push(tab);
