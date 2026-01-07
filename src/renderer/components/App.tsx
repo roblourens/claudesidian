@@ -206,6 +206,13 @@ export function App(): React.ReactElement {
       saveImage,
     });
     editorRef.current = editor;
+    
+    // Create initial tab if none exists
+    if (AppState.getOpenTabs().length === 0) {
+      const tabId = AppState.openTab(null, '');
+      AppState.setActiveTab(tabId);
+    }
+    
     editor.focus();
 
     // Log platform info
@@ -431,9 +438,7 @@ export function App(): React.ReactElement {
       {/* Main Content Area */}
       <div className="main-content">
         {/* Tab Bar */}
-        <div id="tab-bar">
-          <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
-        </div>
+        <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
 
         {/* Editor or Image Viewer */}
         {isCurrentTabImage ? (

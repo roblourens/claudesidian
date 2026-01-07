@@ -46,7 +46,7 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
   }
 
   return (
-    <div className="tab-bar" style={{ display: 'flex' }}>
+    <div id="tab-bar" className="tab-bar" style={{ display: 'flex' }}>
       {tabs.map((tab) => (
         <div
           key={tab.id}

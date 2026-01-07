@@ -21,8 +21,8 @@ test.beforeAll(async () => {
   
   // Launch the packaged Electron app
   const executablePath = path.join(
-    __dirname, '..', 'out', 'notes-app-darwin-arm64', 
-    'notes-app.app', 'Contents', 'MacOS', 'notes-app'
+    __dirname, '..', 'out', 'Opusidian-darwin-arm64', 
+    'Opusidian.app', 'Contents', 'MacOS', 'Opusidian'
   );
     
   electronApp = await electron.launch({
@@ -44,6 +44,14 @@ test.afterAll(async () => {
 });
 
 test('should display tabs horizontally when files are opened', async () => {
+  // First, verify there's an initial tab on startup
+  const initialTabBar = window.locator('#tab-bar.tab-bar');
+  await expect(initialTabBar).toBeVisible({ timeout: 5000 });
+  
+  const initialTabs = await window.locator('#tab-bar .tab').count();
+  console.log('Initial tab count on startup:', initialTabs);
+  expect(initialTabs).toBeGreaterThanOrEqual(1);
+  
   // Send the menu command directly via IPC from the main process
   await electronApp.evaluate(async ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];

@@ -20,8 +20,8 @@ test.beforeAll(async () => {
   // Launch the packaged Electron app directly (not via Electron Forge dev server)
   // This avoids DevTools being opened and process confusion
   const executablePath = path.join(
-    __dirname, '..', 'out', 'notes-app-darwin-arm64', 
-    'notes-app.app', 'Contents', 'MacOS', 'notes-app'
+    __dirname, '..', 'out', 'Opusidian-darwin-arm64', 
+    'Opusidian.app', 'Contents', 'MacOS', 'Opusidian'
   );
     
   electronApp = await electron.launch({

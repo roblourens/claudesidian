@@ -16,6 +16,9 @@ import { registerIpcHandlers } from './ipc/handlers';
 import { setupApplicationMenu } from './menu/appMenu';
 import { getWorkspaceRoot } from './services/workspaceService';
 
+// Set app name early, before 'ready' event
+app.setName('Opusidian');
+
 // Handle EPIPE errors gracefully (happens when stdout is piped and closed early)
 process.stdout?.on('error', (err) => {
   if (err.code === 'EPIPE') {
@@ -81,9 +84,6 @@ function setupIpc(): void {
  * Application startup sequence.
  */
 app.on('ready', () => {
-  // Set app name for macOS menu bar
-  app.name = 'Opusidian';
-  
   registerWorkspaceProtocol();
   setupIpc();
   setupApplicationMenu();

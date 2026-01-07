@@ -11,6 +11,8 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     name: 'Opusidian',
+    executableName: 'Opusidian',
+    appBundleId: 'com.opusidian.app',
     icon: './assets/icon',
   },
   rebuildConfig: {},

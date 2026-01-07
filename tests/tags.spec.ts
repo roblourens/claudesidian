@@ -55,8 +55,8 @@ This paragraph has #urgent and #important tags.
   
   // Launch the packaged Electron app
   const executablePath = path.join(
-    __dirname, '..', 'out', 'notes-app-darwin-arm64', 
-    'notes-app.app', 'Contents', 'MacOS', 'notes-app'
+    __dirname, '..', 'out', 'Opusidian-darwin-arm64', 
+    'Opusidian.app', 'Contents', 'MacOS', 'Opusidian'
   );
     
   electronApp = await electron.launch({
