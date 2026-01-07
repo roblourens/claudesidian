@@ -13,6 +13,8 @@ import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInp
 import { oneDark } from '@codemirror/theme-one-dark';
 import { baseTheme } from './themes/baseTheme';
 import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
+import { tagDecorations, tagTheme } from './extensions/tagDecorations';
+import { tagAutocomplete } from './extensions/tagAutocomplete';
 
 /**
  * Options for creating an editor.
@@ -22,6 +24,10 @@ export interface EditorOptions {
   initialContent?: string;
   /** Callback fired when the document content changes */
   onContentChange?: (content: string) => void;
+  /** Callback when a tag is clicked */
+  onTagClick?: (tag: string) => void;
+  /** Function to get all available tags for autocomplete */
+  getTags?: () => Promise<string[]>;
 }
 
 /**
@@ -62,6 +68,15 @@ function createExtensions(options?: EditorOptions) {
 
     // WYSIWYG markdown - hide syntax markers, show formatted text
     wysiwygMarkdown(),
+
+    // Tag decorations and theme
+    tagDecorations({
+      onTagClick: options?.onTagClick,
+    }),
+    tagTheme,
+
+    // Tag autocomplete (if getTags function provided)
+    ...(options?.getTags ? [tagAutocomplete({ getTags: options.getTags })] : []),
 
     // Placeholder for empty document
     EditorView.contentAttributes.of({

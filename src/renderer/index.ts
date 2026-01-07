@@ -11,6 +11,7 @@ import './styles/main.css';
 import { createEditor, getContent, setContent } from './editor/Editor';
 import { Sidebar } from './sidebar/Sidebar';
 import { TabBar } from './tabs/TabBar';
+import { TagSidebar } from './tags/TagSidebar';
 import * as AppState from './state/AppState';
 import type { EditorView } from '@codemirror/view';
 
@@ -29,20 +30,24 @@ function isElectron(): boolean {
 class App {
   private editor: EditorView;
   private sidebar: Sidebar | null = null;
+  private tagSidebar: TagSidebar | null = null;
   private tabBar: TabBar | null = null;
   private tabBarContainer: HTMLElement | null = null;
 
   constructor(
     editorContainer: HTMLElement, 
     sidebarContainer: HTMLElement | null,
-    tabBarContainer: HTMLElement | null
+    tabBarContainer: HTMLElement | null,
+    tagSidebarContainer: HTMLElement | null
   ) {
     // Store tab bar container reference
     this.tabBarContainer = tabBarContainer;
     
-    // Create the editor with content change tracking
+    // Create the editor with content change tracking, tag click handling, and autocomplete
     this.editor = createEditor(editorContainer, {
       onContentChange: (content) => this.onEditorContentChange(content),
+      onTagClick: (tag) => this.showTaggedParagraphs(tag),
+      getTags: () => this.getAllTagNames(),
     });
     this.editor.focus();
 
@@ -67,6 +72,27 @@ class App {
       });
     }
 
+    // Create tag sidebar if container exists and we're in Electron
+    if (tagSidebarContainer && isElectron()) {
+      this.tagSidebar = new TagSidebar(tagSidebarContainer, {
+        onTagClick: (tag) => this.showTaggedParagraphs(tag),
+      });
+      
+      // Subscribe to workspace changes to update tags
+      AppState.subscribe((state) => {
+        if (state.workspaceRoot && this.tagSidebar) {
+          this.tagSidebar.updateTags();
+        }
+      });
+
+      // Subscribe to tag index updates from file watcher
+      window.api.onTagsUpdated(() => {
+        if (this.tagSidebar) {
+          this.tagSidebar.updateTags();
+        }
+      });
+    }
+
     // Register menu command handlers (Electron only)
     if (isElectron()) {
       this.registerMenuHandlers();
@@ -79,6 +105,21 @@ class App {
       console.log(`Notes App running on ${window.api.platform}`);
     } else {
       console.log('Notes App running in browser mode');
+    }
+  }
+
+  /**
+   * Get all tag names for autocomplete.
+   */
+  private async getAllTagNames(): Promise<string[]> {
+    if (!isElectron()) return [];
+    
+    try {
+      const tags = await window.api.getAllTags();
+      return tags.map(t => t.tag);
+    } catch (error) {
+      console.error('Failed to fetch tags for autocomplete:', error);
+      return [];
     }
   }
 
@@ -144,6 +185,55 @@ class App {
     const activeTab = AppState.getActiveTab();
     if (activeTab) {
       this.closeTab(activeTab);
+    }
+  }
+
+  /**
+   * Show all paragraphs tagged with a specific tag in a virtual document.
+   */
+  private async showTaggedParagraphs(tag: string): Promise<void> {
+    if (!isElectron()) return;
+
+    try {
+      const paragraphs = await window.api.findParagraphsByTag(tag);
+      
+      if (paragraphs.length === 0) {
+        console.log(`No paragraphs found for tag #${tag}`);
+        return;
+      }
+
+      // Build a virtual document with all tagged paragraphs
+      const lines: string[] = [];
+      lines.push(`# Tag: #${tag}`);
+      lines.push('');
+      lines.push(`Found ${paragraphs.length} paragraph${paragraphs.length === 1 ? '' : 's'}`);
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+
+      for (const paragraph of paragraphs) {
+        // Add source file reference
+        lines.push(`### ${paragraph.relativePath}:${paragraph.startLine + 1}`);
+        lines.push('');
+        
+        // Add paragraph content
+        lines.push(paragraph.text);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+      }
+
+      const virtualContent = lines.join('\n');
+      
+      // Create a new tab with the virtual document
+      const tabId = AppState.openTab(null, virtualContent);
+      AppState.setActiveTab(tabId);
+      setContent(this.editor, virtualContent);
+      this.editor.focus();
+      
+      console.log(`Showing ${paragraphs.length} paragraphs for tag #${tag}`);
+    } catch (error) {
+      console.error(`Failed to load paragraphs for tag #${tag}:`, error);
     }
   }
 
@@ -291,12 +381,13 @@ function init(): void {
   const editorContainer = document.getElementById('editor-container');
   const sidebarContainer = document.getElementById('sidebar');
   const tabBarContainer = document.getElementById('tab-bar');
+  const tagSidebarContainer = document.getElementById('tag-sidebar');
   
   if (!editorContainer) {
     throw new Error('Editor container not found');
   }
 
-  new App(editorContainer, sidebarContainer, tabBarContainer);
+  new App(editorContainer, sidebarContainer, tabBarContainer, tagSidebarContainer);
 }
 
 // Wait for DOM to be ready

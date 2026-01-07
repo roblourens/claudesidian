@@ -15,7 +15,9 @@ import type {
   FileEntry, 
   FileOperationResult, 
   OpenFileDialogOptions,
-  OpenFolderDialogOptions 
+  OpenFolderDialogOptions,
+  TagInfo,
+  TaggedParagraphLocation 
 } from '../shared/types/ipc';
 
 /**
@@ -130,6 +132,31 @@ const api = {
   },
 
   // ===========================================================================
+  // Tag Operations
+  // ===========================================================================
+
+  /**
+   * Get all tags in the workspace with their counts.
+   */
+  getAllTags: (): Promise<TagInfo[]> => {
+    return ipcRenderer.invoke('tags:getAll');
+  },
+
+  /**
+   * Get all paragraphs tagged with a specific tag.
+   */
+  findParagraphsByTag: (tag: string): Promise<TaggedParagraphLocation[]> => {
+    return ipcRenderer.invoke('tags:findByTag', tag);
+  },
+
+  /**
+   * Rebuild the tag index for the workspace.
+   */
+  rebuildTagIndex: (): Promise<void> => {
+    return ipcRenderer.invoke('tags:rebuild');
+  },
+
+  // ===========================================================================
   // Menu Events
   // ===========================================================================
   
@@ -163,6 +190,16 @@ const api = {
     };
     ipcRenderer.on('workspace:fileChanged', handler);
     return () => ipcRenderer.removeListener('workspace:fileChanged', handler);
+  },
+
+  /**
+   * Subscribe to tag index updates.
+   * Called when files change and the tag index is updated.
+   */
+  onTagsUpdated: (callback: () => void): (() => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('tags:updated', handler);
+    return () => ipcRenderer.removeListener('tags:updated', handler);
   },
 } as const;
 

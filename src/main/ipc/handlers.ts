@@ -9,6 +9,8 @@ import { app, dialog, IpcMain, IpcMainInvokeEvent, BrowserWindow } from 'electro
 import * as fileService from '../services/fileService';
 import * as workspaceService from '../services/workspaceService';
 import * as persistenceService from '../services/persistenceService';
+import * as tagIndexService from '../services/tagIndexService';
+import * as fileWatcherService from '../services/fileWatcherService';
 import type { OpenFileDialogOptions, OpenFolderDialogOptions } from '../../shared/types/ipc';
 
 /**
@@ -139,6 +141,14 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     // Persist the workspace path
     await persistenceService.setLastWorkspace(folderPath);
     
+    // Build tag index for the workspace (async, doesn't block)
+    tagIndexService.buildIndex().catch(err => {
+      console.error('Failed to build tag index:', err);
+    });
+    
+    // Start file watcher for the workspace
+    fileWatcherService.startWatching(folderPath);
+    
     // Update window title to show workspace name
     const window = getFocusedWindow();
     if (window) {
@@ -160,6 +170,14 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       const exists = await fileService.fileExists(lastWorkspace, null);
       if (exists) {
         workspaceService.setWorkspaceRoot(lastWorkspace);
+        
+        // Build tag index for the workspace (async, doesn't block)
+        tagIndexService.buildIndex().catch(err => {
+          console.error('Failed to build tag index:', err);
+        });
+        
+        // Start file watcher for the workspace
+        fileWatcherService.startWatching(lastWorkspace);
         
         // Update window title
         const window = getFocusedWindow();
@@ -194,5 +212,30 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
     return workspaceService.isWorkspaceOpen();
+  });
+
+  // ===========================================================================
+  // Tag Operations
+  // ===========================================================================
+
+  ipcMain.handle('tags:getAll', (event) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return tagIndexService.getAllTags();
+  });
+
+  ipcMain.handle('tags:findByTag', (event, tag: string) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return tagIndexService.getParagraphsForTag(tag);
+  });
+
+  ipcMain.handle('tags:rebuild', async (event) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    await tagIndexService.buildIndex();
   });
 }

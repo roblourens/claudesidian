@@ -51,6 +51,32 @@ export interface OpenFolderDialogOptions {
   title?: string;
 }
 
+/**
+ * Information about a tag in the workspace.
+ */
+export interface TagInfo {
+  /** Tag name (without #) */
+  tag: string;
+  /** Number of paragraphs with this tag */
+  count: number;
+}
+
+/**
+ * Location of a tagged paragraph.
+ */
+export interface TaggedParagraphLocation {
+  /** Absolute file path */
+  filePath: string;
+  /** Relative path from workspace root */
+  relativePath: string;
+  /** Paragraph text */
+  text: string;
+  /** Line number where paragraph starts */
+  startLine: number;
+  /** Line number where paragraph ends */
+  endLine: number;
+}
+
 // ============================================================================
 // IPC Channels (invoke/handle pattern)
 // ============================================================================
@@ -94,6 +120,22 @@ export interface IpcChannels {
 
   /** Check if a workspace is currently open. */
   'workspace:isOpen': { args: []; return: boolean };
+
+  /** Restore the last opened workspace from persistence. */
+  'workspace:restore': { args: []; return: string | null };
+
+  // -------------------------------------------------------------------------
+  // Tag Operations
+  // -------------------------------------------------------------------------
+
+  /** Get all tags in the workspace with their counts. */
+  'tags:getAll': { args: []; return: TagInfo[] };
+
+  /** Get all paragraphs tagged with a specific tag. */
+  'tags:findByTag': { args: [tag: string]; return: TaggedParagraphLocation[] };
+
+  /** Rebuild the tag index for the workspace. */
+  'tags:rebuild': { args: []; return: void };
 
   // -------------------------------------------------------------------------
   // App Info
