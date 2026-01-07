@@ -81,6 +81,9 @@ function setupIpc(): void {
  * Application startup sequence.
  */
 app.on('ready', () => {
+  // Set app name for macOS menu bar
+  app.name = 'Opusidian';
+  
   registerWorkspaceProtocol();
   setupIpc();
   setupApplicationMenu();

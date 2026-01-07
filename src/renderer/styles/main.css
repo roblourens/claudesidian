@@ -433,3 +433,111 @@ button, input, textarea, a, [role="button"] {
   font-style: italic;
   margin-left: 8px;
 }
+
+/* =============================================================================
+   Image Viewer
+============================================================================= */
+
+.image-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1e1e1e;
+}
+
+.image-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: #21252b;
+  border-bottom: 1px solid #181a1f;
+  flex-shrink: 0;
+}
+
+.image-filename {
+  color: #abb2bf;
+  font-size: 13px;
+}
+
+.image-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.image-zoom-controls button {
+  background: #3e4451;
+  border: none;
+  color: #abb2bf;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-zoom-controls button:hover:not(:disabled) {
+  background: #4e5666;
+}
+
+.image-zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  color: #9da5b4;
+  font-size: 12px;
+  min-width: 48px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.zoom-level:hover {
+  color: #abb2bf;
+}
+
+.image-viewer-container {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.image-viewer-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.image-viewer-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-error-message {
+  text-align: center;
+  color: #abb2bf;
+}
+
+.image-error-message .error-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.image-error-message .error-path {
+  color: #5c6370;
+  font-size: 12px;
+  font-family: monospace;
+}

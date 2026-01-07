@@ -13,8 +13,23 @@ import { createEditor, getContent, setContent } from '../editor/Editor';
 import { Sidebar } from '../sidebar/Sidebar';
 import { TabBar } from '../tabs/TabBar';
 import { TagSidebar } from '../tags/TagSidebar';
+import { ImageViewer } from './ImageViewer';
 import * as AppState from '../state/AppState';
 import type { EditorView } from '@codemirror/view';
+
+/**
+ * Image file extensions.
+ */
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.ico']);
+
+/**
+ * Check if a file path is an image.
+ */
+function isImageFile(filePath: string | null): boolean {
+  if (!filePath) return false;
+  const ext = filePath.toLowerCase().slice(filePath.lastIndexOf('.'));
+  return IMAGE_EXTENSIONS.has(ext);
+}
 
 /**
  * Detect if we're running in Electron or a regular browser.
@@ -32,6 +47,7 @@ export function App(): React.ReactElement {
   const [showTagSidebar] = useState(true);
   const [showSidebar] = useState(true);
   const [hasWorkspace, setHasWorkspace] = useState(false);
+  const [activeTab, setActiveTab] = useState<AppState.OpenTab | null>(null);
 
   /**
    * Get all tag names for autocomplete.
@@ -208,6 +224,7 @@ export function App(): React.ReactElement {
   useEffect(() => {
     const unsubscribe = AppState.subscribe((state) => {
       setHasWorkspace(!!state.workspaceRoot);
+      setActiveTab(AppState.getActiveTab());
     });
     return unsubscribe;
   }, []);
@@ -390,6 +407,18 @@ export function App(): React.ReactElement {
     }
   }, []);
 
+  // Check if current tab is an image
+  const isCurrentTabImage = activeTab && isImageFile(activeTab.filePath);
+  // Get relative path for image viewer (strip workspace root)
+  const getRelativeImagePath = (): string => {
+    if (!activeTab?.filePath) return '';
+    const wsRoot = AppState.getWorkspaceRoot();
+    if (wsRoot && activeTab.filePath.startsWith(wsRoot)) {
+      return activeTab.filePath.slice(wsRoot.length + 1);
+    }
+    return activeTab.filePath;
+  };
+
   return (
     <div className="app-container">
       {/* Left Sidebar */}
@@ -406,8 +435,15 @@ export function App(): React.ReactElement {
           <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
         </div>
 
-        {/* Editor */}
-        <div id="editor-container" ref={editorContainerRef} />
+        {/* Editor or Image Viewer */}
+        {isCurrentTabImage ? (
+          <ImageViewer
+            imagePath={getRelativeImagePath()}
+            alt={activeTab?.filePath?.split('/').pop() || 'Image'}
+          />
+        ) : (
+          <div id="editor-container" ref={editorContainerRef} />
+        )}
       </div>
 
       {/* Right Tag Sidebar */}

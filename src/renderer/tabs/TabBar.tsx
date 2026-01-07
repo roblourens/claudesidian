@@ -12,11 +12,15 @@ export interface TabBarProps {
 }
 
 export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactElement | null {
-  const [tabs, setTabs] = useState<readonly OpenTab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [tabs, setTabs] = useState<readonly OpenTab[]>(AppState.getOpenTabs());
+  const [activeTabId, setActiveTabId] = useState<string | null>(AppState.getActiveTabId());
 
   // Subscribe to state changes
   useEffect(() => {
+    // Initialize with current state
+    setTabs(AppState.getOpenTabs());
+    setActiveTabId(AppState.getActiveTabId());
+    
     const unsubscribe = AppState.subscribe(() => {
       setTabs(AppState.getOpenTabs());
       setActiveTabId(AppState.getActiveTabId());
