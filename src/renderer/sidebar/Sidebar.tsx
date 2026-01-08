@@ -199,10 +199,7 @@ export function Sidebar({ onFileSelect, onOpenFolder }: SidebarProps): React.Rea
 
   return (
     <div className="sidebar">
-      {/* Draggable region for window movement */}
-      <div className="sidebar-drag-region" />
-      
-      {/* Header */}
+      {/* Header - also serves as window drag region */}
       <div className="sidebar-header">
         <span className="sidebar-title">
           {workspaceRoot ? workspaceName : 'No Folder Open'}

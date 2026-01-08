@@ -45,14 +45,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Sidebar drag region - allows window dragging from sidebar area */
-.sidebar-drag-region {
-  -webkit-app-region: drag;
-  height: 38px;
-  flex-shrink: 0;
-  background-color: transparent;
-}
-
 /* Ensure buttons and inputs are not draggable */
 button, input, textarea, a, [role="button"] {
   -webkit-app-region: no-drag;
@@ -95,6 +87,7 @@ button, input, textarea, a, [role="button"] {
   /* Add padding for macOS traffic light buttons */
   padding-top: 42px;
   border-bottom: 1px solid #181a1f;
+  -webkit-app-region: drag;
 }
 
 .sidebar-title {
