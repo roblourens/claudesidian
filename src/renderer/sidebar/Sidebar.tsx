@@ -199,6 +199,9 @@ export function Sidebar({ onFileSelect, onOpenFolder }: SidebarProps): React.Rea
 
   return (
     <div className="sidebar">
+      {/* Draggable region for window movement */}
+      <div className="sidebar-drag-region" />
+      
       {/* Header */}
       <div className="sidebar-header">
         <span className="sidebar-title">

@@ -183,10 +183,8 @@ export function buildVirtualDocumentContent(data: VirtualDocumentData): string {
   lines.push('');
   
   for (const paragraph of data.paragraphs) {
-    // Add source reference header
-    lines.push(`> **${paragraph.source.relativePath}** (line ${paragraph.source.startLine + 1})`);
-    lines.push('');
     // Add placeholder line that will be replaced by widget
+    // The widget itself shows the file path and line number in its header
     lines.push(`[EMBEDDED:${paragraph.source.filePath}:${paragraph.source.startLine}]`);
     lines.push('');
   }
@@ -215,15 +213,16 @@ export function virtualDocumentExtension(onChange: OnParagraphChange) {
         display: 'none',
       },
       '.embedded-paragraph': {
-        margin: '8px 0',
+        margin: '16px 12px',
         border: '1px solid #3a3f4b',
-        borderRadius: '6px',
+        borderRadius: '8px',
         overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
       },
       '.embedded-paragraph-header': {
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '6px 10px',
+        padding: '8px 12px',
         backgroundColor: '#2c313a',
         borderBottom: '1px solid #3a3f4b',
         fontSize: '12px',
@@ -232,9 +231,14 @@ export function virtualDocumentExtension(onChange: OnParagraphChange) {
       '.embedded-paragraph-file': {
         fontWeight: '600',
         color: '#61afef',
+        cursor: 'pointer',
+      },
+      '.embedded-paragraph-file:hover': {
+        textDecoration: 'underline',
       },
       '.embedded-paragraph-line': {
         color: '#7f848e',
+        fontSize: '11px',
       },
       '.embedded-paragraph-editor': {
         padding: '0',
@@ -243,7 +247,8 @@ export function virtualDocumentExtension(onChange: OnParagraphChange) {
         backgroundColor: '#282c34',
       },
       '.embedded-paragraph-editor .cm-content': {
-        padding: '8px 10px',
+        padding: '10px 12px',
+        minHeight: '40px',
       },
     }),
   ];
