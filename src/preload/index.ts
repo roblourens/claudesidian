@@ -17,7 +17,8 @@ import type {
   OpenFileDialogOptions,
   OpenFolderDialogOptions,
   TagInfo,
-  TaggedParagraphLocation 
+  TaggedParagraphLocation,
+  SearchResult 
 } from '../shared/types/ipc';
 
 /**
@@ -191,6 +192,20 @@ const api = {
    */
   rebuildTagIndex: (): Promise<void> => {
     return ipcRenderer.invoke('tags:rebuild');
+  },
+
+  // ===========================================================================
+  // Search Operations
+  // ===========================================================================
+
+  /**
+   * Search for text across all files in the workspace.
+   */
+  searchWorkspace: (
+    query: string,
+    options?: { caseSensitive?: boolean; regex?: boolean; maxResults?: number }
+  ): Promise<SearchResult[]> => {
+    return ipcRenderer.invoke('search:workspace', query, options);
   },
 
   // ===========================================================================

@@ -10,6 +10,7 @@ import { EditorView, ViewUpdate, keymap, highlightActiveLine, highlightActiveLin
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInput } from '@codemirror/language';
+import { highlightSelectionMatches } from '@codemirror/search';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { baseTheme } from './themes/baseTheme';
 import { wysiwygMarkdown } from './extensions/wysiwygMarkdown';
@@ -53,6 +54,9 @@ function createExtensions(options?: EditorOptions) {
     crosshairCursor(),
     highlightActiveLine(),
     highlightActiveLineGutter(),
+    
+    // Search highlighting (for find widget)
+    highlightSelectionMatches(),
 
     // Keybindings
     keymap.of([

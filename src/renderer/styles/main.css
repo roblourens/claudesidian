@@ -84,10 +84,7 @@ button, input, textarea, a, [role="button"] {
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px 8px 12px;
-  /* Add padding for macOS traffic light buttons */
-  padding-top: 42px;
   border-bottom: 1px solid #181a1f;
-  -webkit-app-region: drag;
 }
 
 .sidebar-title {
@@ -555,4 +552,340 @@ button, input, textarea, a, [role="button"] {
   color: #5c6370;
   font-size: 12px;
   font-family: monospace;
+}
+
+/* =============================================================================
+   Sidebar Toolbar
+   ============================================================================= */
+
+.sidebar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 8px 0 8px;
+  padding-top: 38px; /* Space for macOS traffic lights */
+  background-color: #21252b;
+  -webkit-app-region: drag;
+}
+
+.sidebar-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: #636d83;
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+  -webkit-app-region: no-drag;
+}
+
+.sidebar-toolbar-btn:hover {
+  background-color: #2c313a;
+  color: #abb2bf;
+}
+
+.sidebar-toolbar-btn.active {
+  background-color: #3e4451;
+  color: #e5c07b;
+}
+
+/* =============================================================================
+   Search Sidebar
+   ============================================================================= */
+
+.search-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.search-input-container {
+  padding: 8px 12px;
+  border-bottom: 1px solid #181a1f;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #1e1e1e;
+  border: 1px solid #3e4451;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #528bff;
+}
+
+.search-input-wrapper svg {
+  flex-shrink: 0;
+  color: #636d83;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: #abb2bf;
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #5c6370;
+}
+
+.search-options {
+  display: flex;
+  gap: 2px;
+}
+
+.search-option-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: #636d83;
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.search-option-btn:hover {
+  background-color: #3e4451;
+  color: #abb2bf;
+}
+
+.search-option-btn.active {
+  background-color: #528bff;
+  color: #fff;
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.search-status {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #5c6370;
+}
+
+.search-result-file {
+  border-bottom: 1px solid #181a1f;
+}
+
+.search-result-file-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: #abb2bf;
+  transition: background-color 0.1s;
+}
+
+.search-result-file-header:hover {
+  background-color: #2c313a;
+}
+
+.search-result-arrow {
+  width: 12px;
+  font-size: 9px;
+  color: #636d83;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.search-result-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-count {
+  font-size: 11px;
+  color: #5c6370;
+  background-color: #3e4451;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+.search-result-matches {
+  background-color: #1a1d21;
+}
+
+.search-result-match {
+  display: flex;
+  align-items: flex-start;
+  padding: 4px 12px 4px 28px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #9da5b4;
+  transition: background-color 0.1s;
+}
+
+.search-result-match:hover {
+  background-color: #2c313a;
+}
+
+.search-result-line-number {
+  width: 32px;
+  flex-shrink: 0;
+  color: #5c6370;
+  text-align: right;
+  margin-right: 8px;
+}
+
+.search-result-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.search-result-highlight {
+  background-color: #613214;
+  color: #e5c07b;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* =============================================================================
+   Find Widget (in-editor search)
+   ============================================================================= */
+
+.find-widget {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  z-index: 100;
+  background-color: #21252b;
+  border: 1px solid #181a1f;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 6px 8px;
+}
+
+.find-widget-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.find-widget-input-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #1e1e1e;
+  border: 1px solid #3e4451;
+  border-radius: 4px;
+  padding: 4px 8px;
+  min-width: 240px;
+}
+
+.find-widget-input-container:focus-within {
+  border-color: #528bff;
+}
+
+.find-widget-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: #abb2bf;
+  font-size: 13px;
+  outline: none;
+}
+
+.find-widget-input::placeholder {
+  color: #5c6370;
+}
+
+.find-widget-options {
+  display: flex;
+  gap: 2px;
+}
+
+.find-widget-option-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: #636d83;
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.find-widget-option-btn:hover {
+  background-color: #3e4451;
+  color: #abb2bf;
+}
+
+.find-widget-option-btn.active {
+  background-color: #528bff;
+  color: #fff;
+}
+
+.find-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.find-widget-count {
+  font-size: 12px;
+  color: #9da5b4;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.find-widget-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: #9da5b4;
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.find-widget-btn:hover:not(:disabled) {
+  background-color: #3e4451;
+  color: #abb2bf;
+}
+
+.find-widget-btn:disabled {
+  color: #5c6370;
+  cursor: default;
+}
+
+.find-widget-close:hover {
+  background-color: #e74c3c;
+  color: #fff;
 }

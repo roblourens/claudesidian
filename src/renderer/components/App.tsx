@@ -10,13 +10,18 @@ import '../../preload/api.d.ts';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createEditor, getContent, setContent } from '../editor/Editor';
+import { FindWidget } from '../editor/FindWidget';
 import { Sidebar } from '../sidebar/Sidebar';
+import { SearchSidebar } from '../sidebar/SearchSidebar';
 import { TabBar } from '../tabs/TabBar';
 import { TagSidebar } from '../tags/TagSidebar';
 import { ImageViewer } from './ImageViewer';
 import { VirtualDocumentViewer } from './VirtualDocumentViewer';
 import * as AppState from '../state/AppState';
 import type { EditorView } from '@codemirror/view';
+
+/** Sidebar view options */
+type SidebarView = 'explorer' | 'search';
 
 /**
  * Image file extensions.
@@ -47,6 +52,8 @@ export function App(): React.ReactElement {
   const editorRef = useRef<EditorView | null>(null);
   const [showTagSidebar] = useState(true);
   const [showSidebar] = useState(true);
+  const [sidebarView, setSidebarView] = useState<SidebarView>('explorer');
+  const [showFindWidget, setShowFindWidget] = useState(false);
   const [hasWorkspace, setHasWorkspace] = useState(false);
   const [activeTab, setActiveTab] = useState<AppState.OpenTab | null>(null);
 
@@ -437,10 +444,54 @@ export function App(): React.ReactElement {
     }
   }, []);
 
+  // Search result handler - opens file and navigates to line
+  const onSearchResultSelect = useCallback(async (filePath: string, lineNumber: number): Promise<void> => {
+    const handlers = (window as WindowWithHandlers).__notesAppHandlers;
+    if (handlers?.openFile) {
+      await handlers.openFile(filePath);
+      // After file is open, scroll to line
+      requestAnimationFrame(() => {
+        if (editorRef.current) {
+          const doc = editorRef.current.state.doc;
+          if (lineNumber > 0 && lineNumber <= doc.lines) {
+            const line = doc.line(lineNumber);
+            editorRef.current.dispatch({
+              selection: { anchor: line.from },
+              scrollIntoView: true,
+            });
+            editorRef.current.focus();
+          }
+        }
+      });
+    }
+  }, []);
+
   // Check if current tab is an image
   const isCurrentTabImage = activeTab && isImageFile(activeTab.filePath);
   // Check if current tab is a virtual document with embedded data
   const isCurrentTabVirtualDoc = activeTab?.virtualData !== undefined;
+
+  // Handle keyboard shortcuts for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      // Cmd+Shift+F - open workspace search
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
+        e.preventDefault();
+        setSidebarView('search');
+      }
+      // Cmd+F - open find widget in editor
+      else if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'f') {
+        e.preventDefault();
+        if (editorRef.current && !isCurrentTabVirtualDoc && !isCurrentTabImage) {
+          setShowFindWidget(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCurrentTabVirtualDoc, isCurrentTabImage]);
+
   // Get relative path for image viewer (strip workspace root)
   const getRelativeImagePath = (): string => {
     if (!activeTab?.filePath) return '';
@@ -473,7 +524,34 @@ export function App(): React.ReactElement {
       {/* Left Sidebar */}
       {showSidebar && (
         <div id="sidebar" className="sidebar-container">
-          <Sidebar onFileSelect={onFileSelect} onOpenFolder={openFolder} />
+          {/* Sidebar View Toggle Toolbar */}
+          <div className="sidebar-toolbar">
+            <button
+              className={`sidebar-toolbar-btn ${sidebarView === 'explorer' ? 'active' : ''}`}
+              onClick={() => setSidebarView('explorer')}
+              title="Explorer"
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M1.5 3A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H8.414l-.707-.707A2 2 0 0 0 6.293 3H1.5z"/>
+              </svg>
+            </button>
+            <button
+              className={`sidebar-toolbar-btn ${sidebarView === 'search' ? 'active' : ''}`}
+              onClick={() => setSidebarView('search')}
+              title="Search (⌘⇧F)"
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+              </svg>
+            </button>
+          </div>
+          
+          {/* Sidebar Content */}
+          {sidebarView === 'explorer' ? (
+            <Sidebar onFileSelect={onFileSelect} onOpenFolder={openFolder} />
+          ) : (
+            <SearchSidebar onResultSelect={onSearchResultSelect} />
+          )}
         </div>
       )}
 
@@ -482,9 +560,17 @@ export function App(): React.ReactElement {
         {/* Tab Bar */}
         <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
 
+        {/* Find Widget */}
+        {showFindWidget && editorRef.current && (
+          <FindWidget
+            editor={editorRef.current}
+            onClose={() => setShowFindWidget(false)}
+          />
+        )}
+
         {/* Editor, Image Viewer, or Virtual Document Viewer */}
         {isCurrentTabVirtualDoc && activeTab?.virtualData && (
-          <VirtualDocumentViewer data={getVirtualDocData()!} />
+          <VirtualDocumentViewer data={getVirtualDocData() ?? { title: '', paragraphs: [] }} />
         )}
         {isCurrentTabImage && (
           <ImageViewer

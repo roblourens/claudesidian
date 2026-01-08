@@ -77,6 +77,24 @@ export interface TaggedParagraphLocation {
   endLine: number;
 }
 
+/**
+ * A search result from workspace-wide search.
+ */
+export interface SearchResult {
+  /** Absolute file path */
+  filePath: string;
+  /** Relative path from workspace root */
+  relativePath: string;
+  /** Line number (1-based) */
+  lineNumber: number;
+  /** The line text containing the match */
+  lineText: string;
+  /** Start index of match within lineText */
+  matchStart: number;
+  /** End index of match within lineText */
+  matchEnd: number;
+}
+
 // ============================================================================
 // IPC Channels (invoke/handle pattern)
 // ============================================================================
@@ -148,6 +166,13 @@ export interface IpcChannels {
 
   /** Rebuild the tag index for the workspace. */
   'tags:rebuild': { args: []; return: void };
+
+  // -------------------------------------------------------------------------
+  // Search Operations
+  // -------------------------------------------------------------------------
+
+  /** Search for text across all files in workspace. */
+  'search:workspace': { args: [query: string, options?: { caseSensitive?: boolean; regex?: boolean; maxResults?: number }]; return: SearchResult[] };
 
   // -------------------------------------------------------------------------
   // App Info

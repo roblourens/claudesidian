@@ -6,12 +6,119 @@
  */
 
 import { app, dialog, IpcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import * as fileService from '../services/fileService';
 import * as workspaceService from '../services/workspaceService';
 import * as persistenceService from '../services/persistenceService';
 import * as tagIndexService from '../services/tagIndexService';
 import * as fileWatcherService from '../services/fileWatcherService';
-import type { OpenFileDialogOptions, OpenFolderDialogOptions } from '../../shared/types/ipc';
+import type { OpenFileDialogOptions, OpenFolderDialogOptions, SearchResult } from '../../shared/types/ipc';
+
+/**
+ * File extensions to search in.
+ */
+const SEARCHABLE_EXTENSIONS = new Set(['.md', '.markdown', '.txt']);
+
+/**
+ * Search all files in workspace for a query string.
+ */
+async function searchWorkspaceFiles(
+  workspaceRoot: string,
+  query: string,
+  options: { caseSensitive: boolean; regex: boolean; maxResults: number }
+): Promise<SearchResult[]> {
+  const results: SearchResult[] = [];
+  const { caseSensitive, regex, maxResults } = options;
+
+  if (!query) return results;
+
+  // Build the search pattern
+  let searchPattern: RegExp;
+  try {
+    if (regex) {
+      searchPattern = new RegExp(query, caseSensitive ? 'g' : 'gi');
+    } else {
+      // Escape special regex characters for literal search
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      searchPattern = new RegExp(escaped, caseSensitive ? 'g' : 'gi');
+    }
+  } catch {
+    // Invalid regex, return empty results
+    return results;
+  }
+
+  /**
+   * Recursively search directory for files.
+   */
+  async function searchDirectory(dirPath: string): Promise<void> {
+    if (results.length >= maxResults) return;
+
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (results.length >= maxResults) return;
+
+        const fullPath = path.join(dirPath, entry.name);
+
+        // Skip hidden files and directories
+        if (entry.name.startsWith('.')) continue;
+
+        if (entry.isDirectory()) {
+          // Skip node_modules and other common non-content directories
+          if (entry.name === 'node_modules' || entry.name === '.git') continue;
+          await searchDirectory(fullPath);
+        } else if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase();
+          if (SEARCHABLE_EXTENSIONS.has(ext)) {
+            await searchFile(fullPath);
+          }
+        }
+      }
+    } catch {
+      // Ignore directory read errors
+    }
+  }
+
+  /**
+   * Search a single file for matches.
+   */
+  async function searchFile(filePath: string): Promise<void> {
+    if (results.length >= maxResults) return;
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const lines = content.split('\n');
+      const relativePath = path.relative(workspaceRoot, filePath);
+
+      for (let i = 0; i < lines.length && results.length < maxResults; i++) {
+        const line = lines[i];
+        searchPattern.lastIndex = 0; // Reset regex state
+        
+        let match: RegExpExecArray | null;
+        while ((match = searchPattern.exec(line)) !== null && results.length < maxResults) {
+          results.push({
+            filePath,
+            relativePath,
+            lineNumber: i + 1,
+            lineText: line,
+            matchStart: match.index,
+            matchEnd: match.index + match[0].length,
+          });
+
+          // For non-global regex, prevent infinite loop
+          if (!searchPattern.global) break;
+        }
+      }
+    } catch {
+      // Ignore file read errors
+    }
+  }
+
+  await searchDirectory(workspaceRoot);
+  return results;
+}
 
 /**
  * Validate that an IPC event comes from a trusted source.
@@ -330,5 +437,24 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
       throw new Error('Unauthorized');
     }
     await tagIndexService.buildIndex();
+  });
+
+  // ===========================================================================
+  // Search Operations
+  // ===========================================================================
+
+  ipcMain.handle('search:workspace', async (event, query: string, options?: { caseSensitive?: boolean; regex?: boolean; maxResults?: number }) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+
+    const workspaceRoot = workspaceService.getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return [];
+    }
+
+    const { caseSensitive = false, regex = false, maxResults = 1000 } = options ?? {};
+    
+    return searchWorkspaceFiles(workspaceRoot, query, { caseSensitive, regex, maxResults });
   });
 }
