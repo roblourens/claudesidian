@@ -230,6 +230,8 @@ button, input, textarea, a, [role="button"] {
   transition: background-color 0.1s;
   max-width: 180px;
   min-width: 80px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tab:hover {
@@ -241,6 +243,18 @@ button, input, textarea, a, [role="button"] {
   color: #abb2bf;
   border-bottom: 1px solid #1e1e1e;
   margin-bottom: -1px;
+}
+
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tab.drop-before {
+  box-shadow: inset 3px 0 0 #528bff;
+}
+
+.tab.drop-after {
+  box-shadow: inset -3px 0 0 #528bff;
 }
 
 .tab.dirty .tab-name {

@@ -12,11 +12,22 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test';
 import { _electron as electron } from 'playwright';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 let electronApp: ElectronApplication;
 let window: Page;
 
+// Create isolated directories for tests
+const testUserData = path.join(os.tmpdir(), 'notes-app-userdata-' + Date.now());
+const testWorkspace = path.join(os.tmpdir(), 'notes-app-workspace-' + Date.now());
+
 test.beforeAll(async () => {
+  // Create isolated test directories
+  fs.mkdirSync(testUserData, { recursive: true });
+  fs.mkdirSync(testWorkspace, { recursive: true });
+  fs.writeFileSync(path.join(testWorkspace, 'test.md'), '# Test\n\nHello world');
+  
   // Launch the packaged Electron app directly (not via Electron Forge dev server)
   // This avoids DevTools being opened and process confusion
   const executablePath = path.join(
@@ -27,6 +38,7 @@ test.beforeAll(async () => {
   electronApp = await electron.launch({
     executablePath,
     timeout: 30000,
+    args: ['--user-data-dir=' + testUserData],
   });
 
   // Wait for a window to be ready
@@ -43,6 +55,9 @@ test.afterAll(async () => {
   if (electronApp) {
     await electronApp.close();
   }
+  // Clean up test directories
+  fs.rmSync(testUserData, { recursive: true, force: true });
+  fs.rmSync(testWorkspace, { recursive: true, force: true });
 });
 
 test.describe('Notes App in Electron', () => {

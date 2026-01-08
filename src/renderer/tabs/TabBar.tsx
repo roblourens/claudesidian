@@ -2,7 +2,7 @@
  * Tab bar component for managing open files.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import * as AppState from '../state/AppState';
 import type { OpenTab } from '../state/AppState';
 
@@ -14,6 +14,10 @@ export interface TabBarProps {
 export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactElement | null {
   const [tabs, setTabs] = useState<readonly OpenTab[]>(AppState.getOpenTabs());
   const [activeTabId, setActiveTabId] = useState<string | null>(AppState.getActiveTabId());
+  const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null);
+  const dragImageRef = useRef<HTMLDivElement | null>(null);
 
   // Subscribe to state changes
   useEffect(() => {
@@ -40,22 +44,136 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
     return parts[parts.length - 1] || 'Untitled';
   }, []);
 
+  /**
+   * Handle drag start on a tab.
+   */
+  const handleDragStart = useCallback((e: React.DragEvent, tab: OpenTab) => {
+    setDraggedTabId(tab.id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tab.id);
+    
+    // Create custom drag image
+    const dragImage = document.createElement('div');
+    dragImage.className = 'tab-drag-image';
+    dragImage.textContent = getTabDisplayName(tab);
+    dragImage.style.cssText = `
+      position: absolute;
+      top: -1000px;
+      left: -1000px;
+      padding: 6px 12px;
+      background: #21252b;
+      border: 1px solid #528bff;
+      border-radius: 4px;
+      color: #abb2bf;
+      font-size: 13px;
+      white-space: nowrap;
+    `;
+    document.body.appendChild(dragImage);
+    dragImageRef.current = dragImage;
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+  }, [getTabDisplayName]);
+
+  /**
+   * Handle drag end.
+   */
+  const handleDragEnd = useCallback(() => {
+    setDraggedTabId(null);
+    setDropTargetId(null);
+    setDropPosition(null);
+    
+    // Clean up drag image
+    if (dragImageRef.current) {
+      document.body.removeChild(dragImageRef.current);
+      dragImageRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Handle drag over a tab.
+   */
+  const handleDragOver = useCallback((e: React.DragEvent, tab: OpenTab) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (draggedTabId === tab.id) return;
+    
+    // Determine if we're on the left or right half of the tab
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midpoint = rect.left + rect.width / 2;
+    const position = e.clientX < midpoint ? 'before' : 'after';
+    
+    setDropTargetId(tab.id);
+    setDropPosition(position);
+  }, [draggedTabId]);
+
+  /**
+   * Handle drag leave.
+   */
+  const handleDragLeave = useCallback(() => {
+    setDropTargetId(null);
+    setDropPosition(null);
+  }, []);
+
+  /**
+   * Handle drop on a tab.
+   */
+  const handleDrop = useCallback((e: React.DragEvent, targetTab: OpenTab) => {
+    e.preventDefault();
+    
+    if (!draggedTabId || draggedTabId === targetTab.id) return;
+    
+    const fromIndex = tabs.findIndex(t => t.id === draggedTabId);
+    let toIndex = tabs.findIndex(t => t.id === targetTab.id);
+    
+    if (fromIndex === -1 || toIndex === -1) return;
+    
+    // Adjust target index based on drop position
+    if (dropPosition === 'after') {
+      toIndex = toIndex + 1;
+    }
+    
+    // Adjust for the removal of the dragged item
+    if (fromIndex < toIndex) {
+      toIndex = toIndex - 1;
+    }
+    
+    AppState.reorderTabs(fromIndex, toIndex);
+    
+    setDraggedTabId(null);
+    setDropTargetId(null);
+    setDropPosition(null);
+  }, [draggedTabId, dropPosition, tabs]);
+
   // Hide if no tabs
   if (tabs.length === 0) {
     return null;
   }
 
   return (
-    <div id="tab-bar" className="tab-bar" style={{ display: 'flex' }}>
+    <div 
+      id="tab-bar" 
+      className="tab-bar" 
+      style={{ display: 'flex' }}
+      onDragOver={(e) => e.preventDefault()}
+    >
       {tabs.map((tab) => (
         <div
           key={tab.id}
           className={
             'tab' +
             (tab.id === activeTabId ? ' active' : '') +
-            (tab.isDirty ? ' dirty' : '')
+            (tab.isDirty ? ' dirty' : '') +
+            (tab.id === draggedTabId ? ' dragging' : '') +
+            (tab.id === dropTargetId && dropPosition === 'before' ? ' drop-before' : '') +
+            (tab.id === dropTargetId && dropPosition === 'after' ? ' drop-after' : '')
           }
           data-tab-id={tab.id}
+          draggable
+          onDragStart={(e) => handleDragStart(e, tab)}
+          onDragEnd={handleDragEnd}
+          onDragOver={(e) => handleDragOver(e, tab)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, tab)}
           onClick={() => onTabSelect(tab)}
         >
           <span className="tab-name">

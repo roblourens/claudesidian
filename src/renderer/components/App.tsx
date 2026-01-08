@@ -239,6 +239,18 @@ export function App(): React.ReactElement {
     return unsubscribe;
   }, []);
 
+  // Sync editor content when active tab changes
+  // This handles cases where the tab changes from AppState (not via onTabSelect)
+  useEffect(() => {
+    if (!activeTab || activeTab.isVirtual || !editorRef.current) return;
+    
+    // Check if the editor content matches the tab content
+    const currentContent = getContent(editorRef.current);
+    if (currentContent !== activeTab.content) {
+      setContent(editorRef.current, activeTab.content);
+    }
+  }, [activeTab]);
+
   // Restore workspace on startup (Electron only)
   useEffect(() => {
     if (!isElectron()) return;
@@ -403,9 +415,17 @@ export function App(): React.ReactElement {
   // Tab select handler
   const onTabSelect = useCallback((tab: AppState.OpenTab): void => {
     AppState.setActiveTab(tab.id);
-    if (editorRef.current) {
-      setContent(editorRef.current, tab.content);
-      editorRef.current.focus();
+    // Only set editor content for non-virtual tabs
+    // Virtual tabs render VirtualDocumentViewer instead
+    if (!tab.isVirtual && editorRef.current) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      // (editor container becomes visible after state change)
+      requestAnimationFrame(() => {
+        if (editorRef.current) {
+          setContent(editorRef.current, tab.content);
+          editorRef.current.focus();
+        }
+      });
     }
   }, []);
 
@@ -463,16 +483,21 @@ export function App(): React.ReactElement {
         <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
 
         {/* Editor, Image Viewer, or Virtual Document Viewer */}
-        {isCurrentTabVirtualDoc && activeTab?.virtualData ? (
+        {isCurrentTabVirtualDoc && activeTab?.virtualData && (
           <VirtualDocumentViewer data={getVirtualDocData()!} />
-        ) : isCurrentTabImage ? (
+        )}
+        {isCurrentTabImage && (
           <ImageViewer
             imagePath={getRelativeImagePath()}
             alt={activeTab?.filePath?.split('/').pop() || 'Image'}
           />
-        ) : (
-          <div id="editor-container" ref={editorContainerRef} />
         )}
+        {/* Always render editor container but hide when showing other viewers */}
+        <div 
+          id="editor-container" 
+          ref={editorContainerRef}
+          style={{ display: (isCurrentTabVirtualDoc || isCurrentTabImage) ? 'none' : undefined }}
+        />
       </div>
 
       {/* Right Tag Sidebar */}

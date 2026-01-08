@@ -32,6 +32,10 @@
             "matchCommandLine": true
         },
         "pkill": true,
-        "true": true
+        "true": true,
+        "/^npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

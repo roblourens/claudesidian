@@ -11,11 +11,13 @@ import os from 'os';
 let electronApp: ElectronApplication;
 let window: Page;
 
-// Create a temp directory for our test workspace
-const testWorkspace = path.join(os.tmpdir(), 'notes-app-test-' + Date.now());
+// Create isolated directories for tests
+const testUserData = path.join(os.tmpdir(), 'notes-app-tabs-userdata-' + Date.now());
+const testWorkspace = path.join(os.tmpdir(), 'notes-app-tabs-test-' + Date.now());
 
 test.beforeAll(async () => {
-  // Create test workspace with a file
+  // Create isolated test directories
+  fs.mkdirSync(testUserData, { recursive: true });
   fs.mkdirSync(testWorkspace, { recursive: true });
   fs.writeFileSync(path.join(testWorkspace, 'test-file.md'), '# Test File\n\nHello world!');
   
@@ -28,6 +30,7 @@ test.beforeAll(async () => {
   electronApp = await electron.launch({
     executablePath,
     timeout: 30000,
+    args: ['--user-data-dir=' + testUserData],
   });
 
   window = await electronApp.firstWindow();
@@ -39,7 +42,8 @@ test.afterAll(async () => {
   if (electronApp) {
     await electronApp.close();
   }
-  // Clean up test workspace
+  // Clean up test directories
+  fs.rmSync(testUserData, { recursive: true, force: true });
   fs.rmSync(testWorkspace, { recursive: true, force: true });
 });
 

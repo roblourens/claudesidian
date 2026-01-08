@@ -18,11 +18,13 @@ import os from 'os';
 let electronApp: ElectronApplication;
 let window: Page;
 
-// Create a temp directory for our test workspace
+// Create isolated directories for tests
+const testUserData = path.join(os.tmpdir(), 'notes-app-tags-userdata-' + Date.now());
 const testWorkspace = path.join(os.tmpdir(), 'notes-app-tags-test-' + Date.now());
 
 test.beforeAll(async () => {
-  // Create test workspace with tagged files
+  // Create isolated test directories
+  fs.mkdirSync(testUserData, { recursive: true });
   fs.mkdirSync(testWorkspace, { recursive: true });
   
   // Create first test file with tags
@@ -62,6 +64,7 @@ This paragraph has #urgent and #important tags.
   electronApp = await electron.launch({
     executablePath,
     timeout: 30000,
+    args: ['--user-data-dir=' + testUserData],
   });
 
   window = await electronApp.firstWindow();
@@ -87,7 +90,8 @@ test.afterAll(async () => {
   if (electronApp) {
     await electronApp.close();
   }
-  // Clean up test workspace
+  // Clean up test directories
+  fs.rmSync(testUserData, { recursive: true, force: true });
   fs.rmSync(testWorkspace, { recursive: true, force: true });
 });
 

@@ -449,3 +449,17 @@ export function updateTabFilePath(tabId: string, filePath: string): void {
 
   notify();
 }
+
+/**
+ * Reorder tabs by moving a tab from one index to another.
+ */
+export function reorderTabs(fromIndex: number, toIndex: number): void {
+  if (fromIndex === toIndex) return;
+  if (fromIndex < 0 || fromIndex >= state.openTabs.length) return;
+  if (toIndex < 0 || toIndex >= state.openTabs.length) return;
+
+  const [movedTab] = state.openTabs.splice(fromIndex, 1);
+  state.openTabs.splice(toIndex, 0, movedTab);
+
+  notify();
+}
