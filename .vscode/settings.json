@@ -26,6 +26,12 @@
         "/^rm \\/Users\\/roblou\\/code\\/notes-app\\/": {
             "approve": true
         },
-        "npm install": true
+        "npm install": true,
+        "/^npm run typecheck 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "pkill": true,
+        "true": true
     }
 }

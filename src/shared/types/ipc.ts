@@ -124,6 +124,12 @@ export interface IpcChannels {
   /** Save an image to the workspace assets folder. Returns relative path to the saved image. */
   'workspace:saveImage': { args: [filename: string, base64Data: string]; return: FileOperationResult<string> };
 
+  /** Update specific lines in a file (for syncing embedded paragraph edits). */
+  'workspace:updateLines': { 
+    args: [filePath: string, startLine: number, endLine: number, newContent: string]; 
+    return: FileOperationResult<{ newEndLine: number }> 
+  };
+
   /** Check if a workspace is currently open. */
   'workspace:isOpen': { args: []; return: boolean };
 

@@ -11,6 +11,27 @@ import type { FileEntry } from '../../shared/types/ipc';
 // Types
 // =============================================================================
 
+/** Data for a virtual document paragraph */
+export interface VirtualParagraphData {
+  /** Source location in original file */
+  source: {
+    filePath: string;
+    relativePath: string;
+    startLine: number;
+    endLine: number;
+  };
+  /** Paragraph content */
+  content: string;
+}
+
+/** Data for a virtual document (tag view) */
+export interface VirtualDocumentData {
+  /** Title (e.g., "# Tag: javascript") */
+  title: string;
+  /** Paragraphs to display */
+  paragraphs: VirtualParagraphData[];
+}
+
 /** Represents an open tab/editor */
 export interface OpenTab {
   /** Unique ID for the tab */
@@ -27,6 +48,8 @@ export interface OpenTab {
   isDirty: boolean;
   /** Whether this is a virtual/read-only document (not saveable) */
   isVirtual?: boolean;
+  /** Virtual document data (for tag views with embedded paragraphs) */
+  virtualData?: VirtualDocumentData;
 }
 
 export interface AppStateData {
@@ -274,6 +297,8 @@ export interface OpenTabOptions {
   title?: string;
   /** Whether this is a virtual/read-only document */
   isVirtual?: boolean;
+  /** Virtual document data (for tag views with embedded paragraphs) */
+  virtualData?: VirtualDocumentData;
 }
 
 /**
@@ -294,9 +319,10 @@ export function openTab(filePath: string | null, content: string, options?: Open
   if (options?.isVirtual && options?.title) {
     const existingVirtual = findVirtualTabByTitle(options.title);
     if (existingVirtual) {
-      // Update content and switch to it
+      // Update content and virtual data, then switch to it
       existingVirtual.content = content;
       existingVirtual.originalContent = content;
+      existingVirtual.virtualData = options.virtualData;
       setActiveTab(existingVirtual.id);
       return existingVirtual.id;
     }
@@ -311,6 +337,7 @@ export function openTab(filePath: string | null, content: string, options?: Open
     originalContent: content,
     isDirty: false,
     isVirtual: options?.isVirtual,
+    virtualData: options?.virtualData,
   };
 
   state.openTabs.push(tab);

@@ -1,0 +1,58 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: notes-app-tags-test-1767898437636
+      - button "📁" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]:
+      - generic [ref=e10] [cursor=pointer]:
+        - img [ref=e11]
+        - generic [ref=e13]: notes.md
+      - generic [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+        - generic [ref=e17]: tasks.md
+  - generic [ref=e19]:
+    - generic [ref=e20] [cursor=pointer]:
+      - generic [ref=e21]: Untitled •
+      - button "×" [ref=e22]
+    - generic [ref=e23] [cursor=pointer]:
+      - generic [ref=e24]: notes.md
+      - button "×" [ref=e25]
+    - generic [ref=e26] [cursor=pointer]:
+      - generic [ref=e27]: "#javascript"
+      - button "×" [ref=e28]
+    - generic [ref=e29] [cursor=pointer]:
+      - generic [ref=e30]: Untitled
+      - button "×" [ref=e31]
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - generic [ref=e36]: Tags
+      - button "↻" [ref=e37] [cursor=pointer]
+    - generic [ref=e38]:
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: "#javascript"
+        - generic [ref=e41]: "2"
+      - generic [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]: "#testing"
+        - generic [ref=e44]: "2"
+      - generic [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: "#api"
+        - generic [ref=e47]: "1"
+      - generic [ref=e48] [cursor=pointer]:
+        - generic [ref=e49]: "#ideas"
+        - generic [ref=e50]: "1"
+      - generic [ref=e51] [cursor=pointer]:
+        - generic [ref=e52]: "#important"
+        - generic [ref=e53]: "1"
+      - generic [ref=e54] [cursor=pointer]:
+        - generic [ref=e55]: "#programming"
+        - generic [ref=e56]: "1"
+      - generic [ref=e57] [cursor=pointer]:
+        - generic [ref=e58]: "#project"
+        - generic [ref=e59]: "1"
+      - generic [ref=e60] [cursor=pointer]:
+        - generic [ref=e61]: "#urgent"
+        - generic [ref=e62]: "1"
+```

@@ -241,6 +241,65 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     return workspaceService.saveImage(filename, base64Data);
   });
 
+  ipcMain.handle('workspace:updateLines', async (
+    event, 
+    filePath: string, 
+    startLine: number, 
+    endLine: number, 
+    newContent: string
+  ) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    
+    try {
+      const workspaceRoot = workspaceService.getWorkspaceRoot();
+      if (!workspaceRoot) {
+        return { success: false, error: 'No workspace open' };
+      }
+      
+      // Read the current file content
+      const readResult = await fileService.readFile(filePath, workspaceRoot);
+      if (!readResult.success || readResult.data === undefined) {
+        return { success: false, error: readResult.error ?? 'Failed to read file' };
+      }
+      
+      const lines = readResult.data.split('\n');
+      
+      // Validate line range
+      if (startLine < 0 || endLine >= lines.length || startLine > endLine) {
+        return { success: false, error: 'Invalid line range' };
+      }
+      
+      // Replace the lines with new content
+      const newLines = newContent.split('\n');
+      lines.splice(startLine, endLine - startLine + 1, ...newLines);
+      
+      // Write back to file
+      const newFullContent = lines.join('\n');
+      const writeResult = await fileService.writeFile(filePath, newFullContent, workspaceRoot);
+      
+      if (!writeResult.success) {
+        return { success: false, error: writeResult.error };
+      }
+      
+      // Update tag index for this file
+      await tagIndexService.updateFile(filePath);
+      
+      // Notify renderers
+      const windows = BrowserWindow.getAllWindows();
+      for (const window of windows) {
+        window.webContents.send('tags:updated');
+      }
+      
+      // Return the new end line (content may have more or fewer lines)
+      const newEndLine = startLine + newLines.length - 1;
+      return { success: true, data: { newEndLine } };
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
+  });
+
   ipcMain.handle('workspace:isOpen', (event) => {
     if (!validateSender(event)) {
       throw new Error('Unauthorized');

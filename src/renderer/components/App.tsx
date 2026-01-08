@@ -14,6 +14,7 @@ import { Sidebar } from '../sidebar/Sidebar';
 import { TabBar } from '../tabs/TabBar';
 import { TagSidebar } from '../tags/TagSidebar';
 import { ImageViewer } from './ImageViewer';
+import { VirtualDocumentViewer } from './VirtualDocumentViewer';
 import * as AppState from '../state/AppState';
 import type { EditorView } from '@codemirror/view';
 
@@ -68,7 +69,7 @@ export function App(): React.ReactElement {
    * Show all paragraphs tagged with a specific tag in a virtual document.
    */
   const showTaggedParagraphs = useCallback(async (tag: string): Promise<void> => {
-    if (!isElectron() || !editorRef.current) return;
+    if (!isElectron()) return;
 
     try {
       const paragraphs = await window.api.findParagraphsByTag(tag);
@@ -78,28 +79,27 @@ export function App(): React.ReactElement {
         return;
       }
 
-      // Build a virtual document with all tagged paragraphs
-      const lines: string[] = [];
-      lines.push(`# Tag: ${tag}`);
-      lines.push('');
+      // Build virtual document data with embedded paragraph info
+      const virtualData: AppState.VirtualDocumentData = {
+        title: `# Tag: ${tag}`,
+        paragraphs: paragraphs.map(p => ({
+          source: {
+            filePath: p.filePath,
+            relativePath: p.relativePath,
+            startLine: p.startLine,
+            endLine: p.endLine,
+          },
+          content: p.text,
+        })),
+      };
 
-      for (const paragraph of paragraphs) {
-        lines.push(`> **${paragraph.relativePath}** (line ${paragraph.startLine + 1})`);
-        lines.push('');
-        lines.push(paragraph.text);
-        lines.push('');
-      }
-
-      const virtualContent = lines.join('\n');
-
-      // Create a new virtual tab (not saveable)
-      const tabId = AppState.openTab(null, virtualContent, {
+      // Create a new virtual tab with the embedded document data
+      const tabId = AppState.openTab(null, '', {
         title: `#${tag}`,
         isVirtual: true,
+        virtualData,
       });
       AppState.setActiveTab(tabId);
-      setContent(editorRef.current, virtualContent);
-      editorRef.current.focus();
 
       console.log(`Showing ${paragraphs.length} paragraphs for tag #${tag}`);
     } catch (error) {
@@ -419,6 +419,8 @@ export function App(): React.ReactElement {
 
   // Check if current tab is an image
   const isCurrentTabImage = activeTab && isImageFile(activeTab.filePath);
+  // Check if current tab is a virtual document with embedded data
+  const isCurrentTabVirtualDoc = activeTab?.virtualData !== undefined;
   // Get relative path for image viewer (strip workspace root)
   const getRelativeImagePath = (): string => {
     if (!activeTab?.filePath) return '';
@@ -427,6 +429,23 @@ export function App(): React.ReactElement {
       return activeTab.filePath.slice(wsRoot.length + 1);
     }
     return activeTab.filePath;
+  };
+
+  // Convert AppState virtual data to VirtualDocumentViewer format
+  const getVirtualDocData = () => {
+    if (!activeTab?.virtualData) return null;
+    return {
+      title: activeTab.virtualData.title,
+      paragraphs: activeTab.virtualData.paragraphs.map(p => ({
+        source: {
+          filePath: p.source.filePath,
+          relativePath: p.source.relativePath,
+          startLine: p.source.startLine,
+          endLine: p.source.endLine,
+        },
+        content: p.content,
+      })),
+    };
   };
 
   return (
@@ -443,8 +462,10 @@ export function App(): React.ReactElement {
         {/* Tab Bar */}
         <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
 
-        {/* Editor or Image Viewer */}
-        {isCurrentTabImage ? (
+        {/* Editor, Image Viewer, or Virtual Document Viewer */}
+        {isCurrentTabVirtualDoc && activeTab?.virtualData ? (
+          <VirtualDocumentViewer data={getVirtualDocData()!} />
+        ) : isCurrentTabImage ? (
           <ImageViewer
             imagePath={getRelativeImagePath()}
             alt={activeTab?.filePath?.split('/').pop() || 'Image'}

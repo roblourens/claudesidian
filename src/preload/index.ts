@@ -136,6 +136,24 @@ const api = {
   },
 
   /**
+   * Update specific lines in a file.
+   * Used for syncing embedded paragraph edits back to source files.
+   * @param filePath - Absolute path to the file
+   * @param startLine - Start line (0-indexed)
+   * @param endLine - End line (0-indexed, inclusive)
+   * @param newContent - New content to replace the lines with
+   * @returns Result with the new end line number
+   */
+  updateLines: (
+    filePath: string, 
+    startLine: number, 
+    endLine: number, 
+    newContent: string
+  ): Promise<FileOperationResult<{ newEndLine: number }>> => {
+    return ipcRenderer.invoke('workspace:updateLines', filePath, startLine, endLine, newContent);
+  },
+
+  /**
    * Check if a workspace is currently open.
    */
   isWorkspaceOpen: (): Promise<boolean> => {
