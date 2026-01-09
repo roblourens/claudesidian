@@ -56,24 +56,26 @@ function ChevronDownIcon(): React.ReactElement {
 
 function CaseSensitiveIcon(): React.ReactElement {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M8.854 11.702h-1.66L6.542 9.77H3.363l-.6 1.932H1.02L4.19 3h1.59l3.074 8.702zm-4.917-3.37h2.364L5.11 4.608l-1.173 3.724zM14 4h-2v8h2V4z"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <text x="1" y="12" fontSize="9" fontWeight="bold" fontFamily="system-ui">Aa</text>
     </svg>
   );
 }
 
 function WholeWordIcon(): React.ReactElement {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M0 11H1V13H0V11zM4 11H5V13H4V11zM8 11H9V13H8V11zM12 11H13V13H12V11zM2 3l3 8h-1.2l-.6-1.8H0.6L0 11H0L2 3h2zm1.8 5.2l-0.8-2.4-0.8 2.4h1.6zM8 3h2.4c0.4 0 0.8 0.1 1.1 0.3 0.3 0.2 0.5 0.4 0.7 0.8 0.2 0.3 0.2 0.7 0.2 1.1 0 0.4-0.1 0.8-0.2 1.1-0.2 0.3-0.4 0.6-0.7 0.8s-0.7 0.3-1.1 0.3H9v2.6H8V3zm2.4 3.4c0.3 0 0.6-0.1 0.8-0.3 0.2-0.2 0.3-0.5 0.3-0.9s-0.1-0.7-0.3-0.9c-0.2-0.2-0.5-0.3-0.8-0.3H9v2.4h1.4z"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <text x="0" y="10" fontSize="7" fontWeight="bold" fontFamily="system-ui">ab</text>
+      <rect x="0" y="12" width="4" height="1.5" />
+      <rect x="6" y="12" width="4" height="1.5" />
     </svg>
   );
 }
 
 function RegexIcon(): React.ReactElement {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M10.012 8l.444-.889L12 5.118V2h2v3.118l1.544 1.993L14.988 8l.556.889L14 10.882V14h-2v-3.118l-1.544-1.993.556-.889zM2.556 8L2 7.111.456 5.118V2h2v3.118l1.544 1.993L3.556 8 3 8.889 4 10.882V14H2v-3.118L.456 8.889 1 8l-.444-.889L2 5.118V2h2v3.118L2.456 7.111l.1.889z"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <text x="1" y="12" fontSize="10" fontFamily="monospace">.*</text>
     </svg>
   );
 }

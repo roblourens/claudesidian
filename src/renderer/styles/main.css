@@ -773,15 +773,14 @@ button, input, textarea, a, [role="button"] {
 
 .find-widget {
   position: absolute;
-  top: 0;
+  top: 8px;
   right: 20px;
   z-index: 100;
   background-color: #21252b;
-  border: 1px solid #181a1f;
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 6px 8px;
+  border: 1px solid #3e4451;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 8px 10px;
 }
 
 .find-widget-input-row {

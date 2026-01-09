@@ -560,14 +560,6 @@ export function App(): React.ReactElement {
         {/* Tab Bar */}
         <TabBar onTabSelect={onTabSelect} onTabClose={onTabClose} />
 
-        {/* Find Widget */}
-        {showFindWidget && editorRef.current && (
-          <FindWidget
-            editor={editorRef.current}
-            onClose={() => setShowFindWidget(false)}
-          />
-        )}
-
         {/* Editor, Image Viewer, or Virtual Document Viewer */}
         {isCurrentTabVirtualDoc && activeTab?.virtualData && (
           <VirtualDocumentViewer data={getVirtualDocData() ?? { title: '', paragraphs: [] }} />
@@ -578,12 +570,24 @@ export function App(): React.ReactElement {
             alt={activeTab?.filePath?.split('/').pop() || 'Image'}
           />
         )}
-        {/* Always render editor container but hide when showing other viewers */}
+        {/* Editor container with find widget */}
         <div 
           id="editor-container" 
           ref={editorContainerRef}
-          style={{ display: (isCurrentTabVirtualDoc || isCurrentTabImage) ? 'none' : undefined }}
-        />
+          style={{ 
+            display: (isCurrentTabVirtualDoc || isCurrentTabImage) ? 'none' : undefined,
+            position: 'relative',
+            flex: 1,
+          }}
+        >
+          {/* Find Widget - positioned inside editor */}
+          {showFindWidget && editorRef.current && (
+            <FindWidget
+              editor={editorRef.current}
+              onClose={() => setShowFindWidget(false)}
+            />
+          )}
+        </div>
       </div>
 
       {/* Right Tag Sidebar */}
