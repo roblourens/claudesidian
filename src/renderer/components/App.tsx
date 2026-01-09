@@ -528,7 +528,7 @@ export function App(): React.ReactElement {
               title="Explorer"
             >
               <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M1.5 3A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H8.414l-.707-.707A2 2 0 0 0 6.293 3H1.5z"/>
+                <path d="M14.5 3H7.71l-.85-.85A.5.5 0 0 0 6.5 2h-4a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-10a.5.5 0 0 0-.5-.5zm-13 1h5.29l.85.85a.5.5 0 0 0 .36.15H14v9H2V4z"/>
               </svg>
             </button>
             <button

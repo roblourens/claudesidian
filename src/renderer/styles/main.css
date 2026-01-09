@@ -1042,11 +1042,19 @@ button, input, textarea, a, [role="button"] {
 
 /* Embedded paragraph styling */
 .embedded-paragraph {
-  margin: 16px;
+  margin: 8px 16px;
   border: 1px solid var(--border-secondary);
   border-radius: 6px;
   overflow: hidden;
   background-color: var(--bg-tertiary);
+}
+
+.embedded-paragraph:first-child {
+  margin-top: 16px;
+}
+
+.embedded-paragraph:last-child {
+  margin-bottom: 16px;
 }
 
 .embedded-paragraph-header {
