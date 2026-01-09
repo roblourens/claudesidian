@@ -213,11 +213,13 @@ export function virtualDocumentExtension(onChange: OnParagraphChange) {
         display: 'none',
       },
       '.embedded-paragraph': {
-        margin: '16px 12px',
+        margin: '4px 12px',
         border: '1px solid #3a3f4b',
-        borderRadius: '8px',
+        borderRadius: '6px',
         overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      },
+      '.embedded-paragraph:first-child': {
+        marginTop: '12px',
       },
       '.embedded-paragraph-header': {
         display: 'flex',
