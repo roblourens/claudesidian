@@ -247,13 +247,14 @@ export function App(): React.ReactElement {
   }, []);
 
   // Sync editor content when active tab changes
-  // This handles cases where the tab changes from AppState (not via onTabSelect)
+  // This handles all tab switches and external content updates
   useEffect(() => {
     if (!activeTab || activeTab.isVirtual || !editorRef.current) return;
     
     // Check if the editor content matches the tab content
     const currentContent = getContent(editorRef.current);
     if (currentContent !== activeTab.content) {
+      console.log('[App] Syncing editor content with tab:', activeTab.filePath);
       setContent(editorRef.current, activeTab.content);
     }
   }, [activeTab]);
@@ -422,16 +423,11 @@ export function App(): React.ReactElement {
   // Tab select handler
   const onTabSelect = useCallback((tab: AppState.OpenTab): void => {
     AppState.setActiveTab(tab.id);
-    // Only set editor content for non-virtual tabs
-    // Virtual tabs render VirtualDocumentViewer instead
+    // Content syncing is handled by the useEffect that watches activeTab
+    // Focus the editor after a brief delay to ensure DOM is ready
     if (!tab.isVirtual && editorRef.current) {
-      // Use requestAnimationFrame to ensure DOM has updated
-      // (editor container becomes visible after state change)
       requestAnimationFrame(() => {
-        if (editorRef.current) {
-          setContent(editorRef.current, tab.content);
-          editorRef.current.focus();
-        }
+        editorRef.current?.focus();
       });
     }
   }, []);

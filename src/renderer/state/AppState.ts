@@ -463,3 +463,47 @@ export function reorderTabs(fromIndex: number, toIndex: number): void {
 
   notify();
 }
+
+/**
+ * Refresh a tab's content from external changes (e.g., edited from a virtual document).
+ * Only updates if the tab is not dirty (has unsaved changes).
+ * @returns true if the tab was refreshed
+ */
+export function refreshTabContent(filePath: string, newContent: string): boolean {
+  const tabIndex = state.openTabs.findIndex(t => t.filePath === filePath);
+  if (tabIndex === -1) {
+    console.log('[AppState] refreshTabContent: tab not found for', filePath);
+    return false;
+  }
+  
+  const tab = state.openTabs[tabIndex];
+  
+  // Don't overwrite unsaved changes - user's local edits take priority
+  if (tab.isDirty) {
+    console.log('[AppState] refreshTabContent: skipping dirty tab', filePath);
+    return false;
+  }
+  
+  // Create a new tab object so React detects the change
+  const updatedTab: OpenTab = {
+    ...tab,
+    content: newContent,
+    originalContent: newContent,
+  };
+  
+  // Create a new array so React detects the state change
+  state.openTabs = [
+    ...state.openTabs.slice(0, tabIndex),
+    updatedTab,
+    ...state.openTabs.slice(tabIndex + 1),
+  ];
+  
+  // Update derived state if this is the active tab
+  if (state.activeTabId === tab.id) {
+    state.originalContent = newContent;
+  }
+  
+  console.log('[AppState] refreshTabContent: updated tab', filePath);
+  notify();
+  return true;
+}

@@ -182,13 +182,21 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
           </span>
           <button
             className="tab-close"
-            title="Close"
+            title="Close (⌘W)"
+            onMouseDown={(e) => {
+              // Use mousedown instead of click for more reliable interaction
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onTabClose(tab);
             }}
           >
-            ×
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M9.354 2.646a.5.5 0 0 1 0 .708L6.707 6l2.647 2.646a.5.5 0 0 1-.708.708L6 6.707l-2.646 2.647a.5.5 0 0 1-.708-.708L5.293 6 2.646 3.354a.5.5 0 1 1 .708-.708L6 5.293l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+            </svg>
           </button>
         </div>
       ))}

@@ -86,22 +86,22 @@ export class EmbeddedParagraphWidget extends WidgetType {
             this.handleChange(update.state.doc.toString());
           }
         }),
-        // Styling for the embedded editor
+        // Styling for the embedded editor (inherits from CSS variables)
         EditorView.theme({
           '&': {
-            backgroundColor: '#282c34',
+            backgroundColor: 'var(--bg-tertiary, #282c34)',
             borderRadius: '4px',
-            padding: '8px',
           },
           '.cm-content': {
-            padding: '0',
+            padding: '8px',
             fontFamily: 'inherit',
           },
           '.cm-line': {
             padding: '0',
           },
           '&.cm-focused': {
-            outline: '1px solid #528bff',
+            outline: '2px solid var(--accent-blue, #528bff)',
+            outlineOffset: '-1px',
           },
         }),
       ],

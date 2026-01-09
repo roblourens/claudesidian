@@ -18,6 +18,7 @@ import {
   type VirtualDocumentData 
 } from '../editor/extensions/virtualDocument';
 import type { ParagraphSource } from '../editor/widgets/EmbeddedParagraphWidget';
+import * as AppState from '../state/AppState';
 
 // Import preload API types
 import '../../preload/api.d.ts';
@@ -42,7 +43,7 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
     source: ParagraphSource,
     newContent: string
   ): Promise<void> => {
-    console.log(`Syncing change to ${source.relativePath} lines ${source.startLine}-${source.endLine}`);
+    console.log(`[VirtualDoc] Syncing change to ${source.relativePath} lines ${source.startLine}-${source.endLine}`);
     
     try {
       const result = await window.api.updateLines(
@@ -53,14 +54,23 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
       );
       
       if (result.success) {
-        console.log(`Successfully synced to ${source.relativePath}, new end line: ${result.data?.newEndLine}`);
+        console.log(`[VirtualDoc] Successfully synced to ${source.relativePath}, new end line: ${result.data?.newEndLine}`);
         // Update the source's end line for future edits
         source.endLine = result.data?.newEndLine ?? source.endLine;
+        
+        // Refresh any open tab for this file so it shows the updated content
+        // Read the full file content and update the tab
+        const fileResult = await window.api.readFile(source.filePath);
+        if (fileResult.success && fileResult.data) {
+          console.log(`[VirtualDoc] Refreshing tab for ${source.filePath}`);
+          const refreshed = AppState.refreshTabContent(source.filePath, fileResult.data);
+          console.log(`[VirtualDoc] Tab refresh result: ${refreshed}`);
+        }
       } else {
-        console.error(`Failed to sync: ${result.error}`);
+        console.error(`[VirtualDoc] Failed to sync: ${result.error}`);
       }
     } catch (error) {
-      console.error('Failed to sync paragraph change:', error);
+      console.error('[VirtualDoc] Failed to sync paragraph change:', error);
     }
   }, []);
 
