@@ -11,6 +11,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/main.css';
 import { App } from './components/App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 /**
  * Initialize the React application.
@@ -25,7 +26,9 @@ function init(): void {
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </StrictMode>
   );
 }

@@ -152,8 +152,9 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
   return (
     <div 
       id="tab-bar" 
-      className="tab-bar" 
-      style={{ display: 'flex' }}
+      className="tab-bar"
+      role="tablist"
+      aria-label="Open files"
       onDragOver={(e) => e.preventDefault()}
     >
       {tabs.map((tab) => (
@@ -168,6 +169,9 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
             (tab.id === dropTargetId && dropPosition === 'after' ? ' drop-after' : '')
           }
           data-tab-id={tab.id}
+          role="tab"
+          aria-selected={tab.id === activeTabId}
+          aria-label={getTabDisplayName(tab)}
           draggable
           onDragStart={(e) => handleDragStart(e, tab)}
           onDragEnd={handleDragEnd}
@@ -178,20 +182,21 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
         >
           <span className="tab-name">
             {getTabDisplayName(tab)}
-            {tab.isDirty && !tab.isVirtual && ' •'}
           </span>
           <button
             className="tab-close"
             title="Close (⌘W)"
+            aria-label={`Close ${getTabDisplayName(tab)}`}
             onMouseDown={(e) => {
-              // Use mousedown instead of click for more reliable interaction
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onClick={(e) => {
+              // Use mousedown for immediate response
               e.preventDefault();
               e.stopPropagation();
               onTabClose(tab);
+            }}
+            onClick={(e) => {
+              // Prevent any additional handling
+              e.preventDefault();
+              e.stopPropagation();
             }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">

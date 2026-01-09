@@ -88,9 +88,16 @@ export function SearchSidebar({ onResultSelect }: SearchSidebarProps): React.Rea
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
 
-  // Focus input on mount
+  // Focus input on mount and cleanup on unmount
   useEffect(() => {
     inputRef.current?.focus();
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
   /**
@@ -155,6 +162,15 @@ export function SearchSidebar({ onResultSelect }: SearchSidebarProps): React.Rea
       setResults([]);
     }
   }, [performSearch, query]);
+
+  /**
+   * Clear the search.
+   */
+  const handleClear = useCallback(() => {
+    setQuery('');
+    setResults([]);
+    inputRef.current?.focus();
+  }, []);
 
   /**
    * Toggle case sensitivity.
@@ -240,6 +256,14 @@ export function SearchSidebar({ onResultSelect }: SearchSidebarProps): React.Rea
         key={`${result.filePath}:${lineNumber}:${matchStart}`}
         className="search-result-match"
         onClick={() => onResultSelect(result.filePath, lineNumber)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onResultSelect(result.filePath, lineNumber);
+          }
+        }}
+        role="option"
+        tabIndex={0}
       >
         <span className="search-result-line-number">{lineNumber}</span>
         <span className="search-result-text">
@@ -265,7 +289,19 @@ export function SearchSidebar({ onResultSelect }: SearchSidebarProps): React.Rea
             value={query}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            aria-label="Search in files"
           />
+          {query && (
+            <button
+              className="search-clear-btn"
+              onClick={handleClear}
+              aria-label="Clear search"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            </button>
+          )}
           <div className="search-options">
             <button
               className={`search-option-btn ${caseSensitive ? 'active' : ''}`}
@@ -306,6 +342,15 @@ export function SearchSidebar({ onResultSelect }: SearchSidebarProps): React.Rea
             <div
               className="search-result-file-header"
               onClick={() => toggleFileExpansion(group.filePath)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleFileExpansion(group.filePath);
+                }
+              }}
+              role="button"
+              aria-expanded={expandedFiles.has(group.filePath)}
+              tabIndex={0}
             >
               <span className="search-result-arrow">
                 {expandedFiles.has(group.filePath) ? '▾' : '▸'}

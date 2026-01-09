@@ -30,6 +30,8 @@ function isElectron(): boolean {
  */
 export function TagSidebar({ onTagClick }: TagSidebarProps): React.ReactElement | null {
   const [tags, setTags] = useState<TagInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * Fetch tags from the workspace index.
@@ -40,12 +42,17 @@ export function TagSidebar({ onTagClick }: TagSidebarProps): React.ReactElement 
       return;
     }
 
+    setIsLoading(true);
+    setError(null);
     try {
       const allTags = await window.api.getAllTags();
       setTags(allTags);
-    } catch (error) {
-      console.error('Failed to load tags:', error);
+    } catch (err) {
+      console.error('Failed to load tags:', err);
+      setError('Failed to load tags');
       setTags([]);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -82,23 +89,48 @@ export function TagSidebar({ onTagClick }: TagSidebarProps): React.ReactElement 
         <button
           className="tag-sidebar-refresh"
           title="Refresh tags"
+          aria-label="Refresh tags"
           onClick={() => updateTags()}
+          disabled={isLoading}
         >
           ↻
         </button>
       </div>
 
       {/* Tag list */}
-      {tags.length === 0 ? (
+      {isLoading ? (
+        <div className="tag-sidebar-empty">
+          <div className="loading-spinner" />
+        </div>
+      ) : error ? (
+        <div className="tag-sidebar-empty">
+          <span style={{ color: 'var(--accent-red)' }}>{error}</span>
+          <button 
+            className="btn btn-secondary" 
+            style={{ marginTop: 8 }}
+            onClick={() => updateTags()}
+          >
+            Retry
+          </button>
+        </div>
+      ) : tags.length === 0 ? (
         <div className="tag-sidebar-empty">No tags found</div>
       ) : (
-        <div className="tag-sidebar-list">
+        <div className="tag-sidebar-list" role="listbox" aria-label="Tags">
           {tags.map((tagInfo) => (
             <div
               key={tagInfo.tag}
               className="tag-sidebar-item"
               data-tag={tagInfo.tag}
               onClick={() => onTagClick(tagInfo.tag)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onTagClick(tagInfo.tag);
+                }
+              }}
+              role="option"
+              tabIndex={0}
             >
               <span className="tag-sidebar-name">#{tagInfo.tag}</span>
               <span className="tag-sidebar-count">{tagInfo.count}</span>

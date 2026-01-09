@@ -14,6 +14,7 @@ export interface ImageViewerProps {
 export function ImageViewer({ imagePath, alt }: ImageViewerProps): React.ReactElement {
   const [zoom, setZoom] = useState(100);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Use workspace-file protocol for the image
   const src = `workspace-file:///${imagePath}`;
@@ -28,6 +29,15 @@ export function ImageViewer({ imagePath, alt }: ImageViewerProps): React.ReactEl
 
   const handleZoomReset = useCallback(() => {
     setZoom(100);
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
+  const handleError = useCallback(() => {
+    setIsLoading(false);
+    setError(true);
   }, []);
 
   if (error) {
@@ -59,11 +69,21 @@ export function ImageViewer({ imagePath, alt }: ImageViewerProps): React.ReactEl
         </div>
       </div>
       <div className="image-viewer-container">
+        {isLoading && (
+          <div className="image-loading">
+            <div className="loading-spinner" />
+          </div>
+        )}
         <img
           src={src}
           alt={alt}
-          style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center center' }}
-          onError={() => setError(true)}
+          style={{ 
+            transform: `scale(${zoom / 100})`, 
+            transformOrigin: 'center center',
+            opacity: isLoading ? 0 : 1,
+          }}
+          onLoad={handleLoad}
+          onError={handleError}
           draggable={false}
         />
       </div>

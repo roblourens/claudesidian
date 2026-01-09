@@ -110,6 +110,15 @@ function FileEntryItem({
           className={`sidebar-item sidebar-directory${isExpanded ? ' expanded' : ''}`}
           style={{ paddingLeft: `${12 + depth * 16}px` }}
           onClick={() => onToggleDir(entry)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleDir(entry);
+            }
+          }}
+          role="treeitem"
+          aria-expanded={isExpanded}
+          tabIndex={0}
         >
           <span className="sidebar-arrow">{isExpanded ? '▾' : '▸'}</span>
           <FileIcon type="folder" />
@@ -136,6 +145,15 @@ function FileEntryItem({
       className={`sidebar-item sidebar-file${entry.path === currentFilePath ? ' active' : ''}`}
       style={{ paddingLeft: `${12 + depth * 16}px` }}
       onClick={() => onFileSelect(entry.path)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onFileSelect(entry.path);
+        }
+      }}
+      role="treeitem"
+      aria-selected={entry.path === currentFilePath}
+      tabIndex={0}
     >
       <FileIcon type={getFileIcon(entry.name)} />
       <span className="sidebar-name">{entry.name}</span>
@@ -228,7 +246,7 @@ export function Sidebar({ onFileSelect, onOpenFolder }: SidebarProps): React.Rea
           )}
         </div>
       ) : (
-        <div className="sidebar-tree">
+        <div className="sidebar-tree" role="tree" aria-label="File explorer">
           {fileTree.map((entry) => (
             <FileEntryItem
               key={entry.path}
