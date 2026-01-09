@@ -246,18 +246,18 @@ export function App(): React.ReactElement {
     return unsubscribe;
   }, []);
 
-  // Sync editor content when active tab changes
-  // This handles all tab switches and external content updates
+  // Sync editor content when active tab changes or tab content is updated externally
+  // This handles all tab switches and external content updates (e.g., from tag view edits)
   useEffect(() => {
     if (!activeTab || activeTab.isVirtual || !editorRef.current) return;
     
-    // Check if the editor content matches the tab content
+    // Always sync to ensure editor shows latest tab content
     const currentContent = getContent(editorRef.current);
     if (currentContent !== activeTab.content) {
-      console.log('[App] Syncing editor content with tab:', activeTab.filePath);
+      console.log('[App] Syncing editor content with tab:', activeTab.filePath, 'content changed:', currentContent.length, '->', activeTab.content.length);
       setContent(editorRef.current, activeTab.content);
     }
-  }, [activeTab]);
+  }, [activeTab, activeTab?.content]);
 
   // Restore workspace on startup (Electron only)
   useEffect(() => {
@@ -423,9 +423,19 @@ export function App(): React.ReactElement {
   // Tab select handler
   const onTabSelect = useCallback((tab: AppState.OpenTab): void => {
     AppState.setActiveTab(tab.id);
-    // Content syncing is handled by the useEffect that watches activeTab
-    // Focus the editor after a brief delay to ensure DOM is ready
+    
+    // For non-virtual tabs, force sync the editor content immediately
+    // This ensures we always show the latest content, even if React state hasn't caught up
     if (!tab.isVirtual && editorRef.current) {
+      // Get the fresh tab from AppState (not the potentially stale parameter)
+      const freshTab = AppState.getOpenTabs().find(t => t.id === tab.id);
+      if (freshTab) {
+        const currentContent = getContent(editorRef.current);
+        if (currentContent !== freshTab.content) {
+          console.log('[App] onTabSelect: forcing sync for', freshTab.filePath);
+          setContent(editorRef.current, freshTab.content);
+        }
+      }
       requestAnimationFrame(() => {
         editorRef.current?.focus();
       });

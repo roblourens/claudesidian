@@ -115,7 +115,7 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
       style={{ 
         flex: 1, 
         overflow: 'auto',
-        backgroundColor: '#1e1e1e',
+        backgroundColor: '#282c34',
       }}
     />
   );
