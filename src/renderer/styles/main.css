@@ -724,7 +724,7 @@ button, input, textarea, a, [role="button"] {
 
 .sidebar-toolbar-btn.active {
   background-color: var(--bg-active);
-  color: var(--text-accent);
+  color: var(--accent-blue);
 }
 
 /* =============================================================================

@@ -12,7 +12,7 @@ import {
   WidgetType 
 } from '@codemirror/view';
 import { EditorState, StateField, StateEffect, RangeSetBuilder } from '@codemirror/state';
-import { EmbeddedParagraphWidget, type ParagraphSource, type OnParagraphChange } from '../widgets/EmbeddedParagraphWidget';
+import { EmbeddedParagraphWidget, type ParagraphSource, type OnParagraphChange, type OnFileClick } from '../widgets/EmbeddedParagraphWidget';
 
 /**
  * Data for a paragraph in a virtual document.
@@ -44,8 +44,9 @@ export const setVirtualDocument = StateEffect.define<VirtualDocumentData | null>
  */
 const onChangeCallback = StateEffect.define<OnParagraphChange>();
 
-// Store the onChange callback - we need this because StateField can't easily access external values
+// Store the callbacks - we need this because StateField can't easily access external values
 let globalOnChange: OnParagraphChange = () => { /* noop */ };
+let globalOnFileClick: OnFileClick | undefined;
 
 /**
  * Widget that displays as a placeholder (replaced by actual embedded editor).
@@ -62,7 +63,8 @@ class ParagraphPlaceholderWidget extends WidgetType {
     const widget = new EmbeddedParagraphWidget(
       this.paragraph.content,
       this.paragraph.source,
-      globalOnChange
+      globalOnChange,
+      globalOnFileClick
     );
     return widget.toDOM();
   }
@@ -195,10 +197,12 @@ export function buildVirtualDocumentContent(data: VirtualDocumentData): string {
 /**
  * Create the virtual document extension.
  * @param onChange - Callback when embedded paragraph content changes
+ * @param onFileClick - Callback when filename is clicked for navigation
  */
-export function virtualDocumentExtension(onChange: OnParagraphChange) {
-  // Store the callback globally (not ideal, but works for our use case)
+export function virtualDocumentExtension(onChange: OnParagraphChange, onFileClick?: OnFileClick) {
+  // Store the callbacks globally (not ideal, but works for our use case)
   globalOnChange = onChange;
+  globalOnFileClick = onFileClick;
   
   return [
     virtualDocumentState,

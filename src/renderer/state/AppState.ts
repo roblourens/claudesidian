@@ -507,3 +507,61 @@ export function refreshTabContent(filePath: string, newContent: string): boolean
   notify();
   return true;
 }
+
+/**
+ * Update a paragraph's content in all virtual documents that reference it.
+ * This keeps tag views in sync when paragraphs are edited.
+ */
+export function updateVirtualParagraph(
+  filePath: string,
+  startLine: number,
+  newContent: string,
+  newEndLine: number
+): void {
+  let updated = false;
+  
+  for (let i = 0; i < state.openTabs.length; i++) {
+    const tab = state.openTabs[i];
+    if (!tab.isVirtual || !tab.virtualData) continue;
+    
+    // Check if any paragraph in this virtual doc matches
+    const paragraphs = tab.virtualData.paragraphs;
+    for (let j = 0; j < paragraphs.length; j++) {
+      const p = paragraphs[j];
+      if (p.source.filePath === filePath && p.source.startLine === startLine) {
+        // Found a matching paragraph - update it
+        const updatedParagraphs = [...paragraphs];
+        updatedParagraphs[j] = {
+          ...p,
+          content: newContent,
+          source: {
+            ...p.source,
+            endLine: newEndLine,
+          },
+        };
+        
+        const updatedTab: OpenTab = {
+          ...tab,
+          virtualData: {
+            ...tab.virtualData,
+            paragraphs: updatedParagraphs,
+          },
+        };
+        
+        state.openTabs = [
+          ...state.openTabs.slice(0, i),
+          updatedTab,
+          ...state.openTabs.slice(i + 1),
+        ];
+        
+        console.log('[AppState] updateVirtualParagraph: updated paragraph in', tab.title);
+        updated = true;
+        break; // Only one matching paragraph per file/line in a virtual doc
+      }
+    }
+  }
+  
+  if (updated) {
+    notify();
+  }
+}

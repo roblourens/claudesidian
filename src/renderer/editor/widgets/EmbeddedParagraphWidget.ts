@@ -34,24 +34,36 @@ export type OnParagraphChange = (
 ) => void;
 
 /**
+ * Callback when file name is clicked.
+ */
+export type OnFileClick = (
+  filePath: string,
+  lineNumber: number
+) => void;
+
+/**
  * Widget that embeds an editable paragraph.
  */
 export class EmbeddedParagraphWidget extends WidgetType {
   private readonly content: string;
   private readonly source: ParagraphSource;
   private readonly onChange: OnParagraphChange;
+  private readonly onFileClick?: OnFileClick;
   private editorView: EditorView | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingContent: string | null = null;
 
   constructor(
     content: string,
     source: ParagraphSource,
-    onChange: OnParagraphChange
+    onChange: OnParagraphChange,
+    onFileClick?: OnFileClick
   ) {
     super();
     this.content = content;
     this.source = source;
     this.onChange = onChange;
+    this.onFileClick = onFileClick;
   }
 
   /**
@@ -64,8 +76,24 @@ export class EmbeddedParagraphWidget extends WidgetType {
     // Header showing source file
     const header = document.createElement('div');
     header.className = 'embedded-paragraph-header';
-    header.innerHTML = `<span class="embedded-paragraph-file">${this.source.relativePath}</span>` +
-      `<span class="embedded-paragraph-line">line ${this.source.startLine + 1}</span>`;
+    
+    const fileLink = document.createElement('span');
+    fileLink.className = 'embedded-paragraph-file';
+    fileLink.textContent = this.source.relativePath;
+    if (this.onFileClick) {
+      fileLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.onFileClick!(this.source.filePath, this.source.startLine);
+      });
+    }
+    header.appendChild(fileLink);
+    
+    const lineInfo = document.createElement('span');
+    lineInfo.className = 'embedded-paragraph-line';
+    lineInfo.textContent = `line ${this.source.startLine + 1}`;
+    header.appendChild(lineInfo);
+    
     container.appendChild(header);
     
     // Editor container
@@ -112,6 +140,11 @@ export class EmbeddedParagraphWidget extends WidgetType {
       parent: editorContainer,
     });
 
+    // Flush pending changes when editor loses focus
+    editorContainer.addEventListener('focusout', () => {
+      this.flushPendingChanges();
+    });
+
     return container;
   }
 
@@ -119,6 +152,9 @@ export class EmbeddedParagraphWidget extends WidgetType {
    * Handle content changes with debouncing.
    */
   private handleChange(newContent: string): void {
+    // Track pending content for flush on destroy
+    this.pendingContent = newContent;
+    
     // Clear existing timer
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
@@ -126,17 +162,31 @@ export class EmbeddedParagraphWidget extends WidgetType {
 
     // Debounce the sync (500ms)
     this.debounceTimer = setTimeout(() => {
+      this.pendingContent = null;
       this.onChange(this.source, newContent);
     }, 500);
+  }
+
+  /**
+   * Flush any pending changes immediately.
+   */
+  private flushPendingChanges(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    if (this.pendingContent !== null) {
+      this.onChange(this.source, this.pendingContent);
+      this.pendingContent = null;
+    }
   }
 
   /**
    * Clean up resources.
    */
   destroy(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
+    // Flush any pending changes before destroying
+    this.flushPendingChanges();
     if (this.editorView) {
       this.editorView.destroy();
       this.editorView = null;

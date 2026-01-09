@@ -383,10 +383,32 @@ export function App(): React.ReactElement {
       editorRef.current?.focus();
     };
 
+    // Handler for navigating to a file from a virtual document
+    const handleFileClick = async (filePath: string, lineNumber: number): Promise<void> => {
+      // Open the file first
+      await openFile(filePath);
+      
+      // After opening, scroll to the line
+      setTimeout(() => {
+        if (editorRef.current) {
+          const doc = editorRef.current.state.doc;
+          if (lineNumber >= 0 && lineNumber < doc.lines) {
+            const linePos = doc.line(lineNumber + 1).from; // Convert 0-indexed to 1-indexed
+            editorRef.current.dispatch({
+              selection: { anchor: linePos },
+              scrollIntoView: true,
+            });
+            editorRef.current.focus();
+          }
+        }
+      }, 50); // Small delay to ensure editor is ready
+    };
+
     // Store openFile and closeTabHandler for use by child components
     (window as WindowWithHandlers).__notesAppHandlers = {
       openFile,
       closeTab: closeTabHandler,
+      handleFileClick,
     };
 
     window.api.onMenuCommand('newFile', newFile);
@@ -422,6 +444,7 @@ export function App(): React.ReactElement {
 
   // Tab select handler
   const onTabSelect = useCallback((tab: AppState.OpenTab): void => {
+    console.log('[App] onTabSelect called for tab:', tab.id, tab.filePath || tab.title);
     AppState.setActiveTab(tab.id);
     
     // For non-virtual tabs, force sync the editor content immediately
@@ -431,9 +454,12 @@ export function App(): React.ReactElement {
       const freshTab = AppState.getOpenTabs().find(t => t.id === tab.id);
       if (freshTab) {
         const currentContent = getContent(editorRef.current);
+        console.log('[App] onTabSelect: current editor length:', currentContent.length, 'freshTab content length:', freshTab.content.length);
         if (currentContent !== freshTab.content) {
-          console.log('[App] onTabSelect: forcing sync for', freshTab.filePath);
+          console.log('[App] onTabSelect: syncing content for', freshTab.filePath);
           setContent(editorRef.current, freshTab.content);
+        } else {
+          console.log('[App] onTabSelect: content already matches');
         }
       }
       requestAnimationFrame(() => {
@@ -569,7 +595,15 @@ export function App(): React.ReactElement {
 
         {/* Editor, Image Viewer, or Virtual Document Viewer */}
         {isCurrentTabVirtualDoc && activeTab?.virtualData && (
-          <VirtualDocumentViewer data={getVirtualDocData() ?? { title: '', paragraphs: [] }} />
+          <VirtualDocumentViewer 
+            data={getVirtualDocData() ?? { title: '', paragraphs: [] }} 
+            onFileClick={(filePath, lineNumber) => {
+              const handlers = (window as WindowWithHandlers).__notesAppHandlers;
+              if (handlers?.handleFileClick) {
+                handlers.handleFileClick(filePath, lineNumber);
+              }
+            }}
+          />
         )}
         {isCurrentTabImage && (
           <ImageViewer
@@ -612,5 +646,6 @@ interface WindowWithHandlers extends Window {
   __notesAppHandlers?: {
     openFile: (filePath: string) => Promise<void>;
     closeTab: (tab: AppState.OpenTab) => Promise<void>;
+    handleFileClick: (filePath: string, lineNumber: number) => Promise<void>;
   };
 }

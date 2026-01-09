@@ -17,7 +17,7 @@ import {
   buildVirtualDocumentContent,
   type VirtualDocumentData 
 } from '../editor/extensions/virtualDocument';
-import type { ParagraphSource } from '../editor/widgets/EmbeddedParagraphWidget';
+import type { ParagraphSource, OnFileClick } from '../editor/widgets/EmbeddedParagraphWidget';
 import * as AppState from '../state/AppState';
 
 // Import preload API types
@@ -26,12 +26,14 @@ import '../../preload/api.d.ts';
 export interface VirtualDocumentViewerProps {
   /** The virtual document data to display */
   data: VirtualDocumentData;
+  /** Callback when a filename is clicked */
+  onFileClick?: OnFileClick;
 }
 
 /**
  * Virtual document viewer with embedded editable paragraphs.
  */
-export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): React.ReactElement {
+export function VirtualDocumentViewer({ data, onFileClick }: VirtualDocumentViewerProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
 
@@ -43,7 +45,8 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
     source: ParagraphSource,
     newContent: string
   ): Promise<void> => {
-    console.log(`[VirtualDoc] Syncing change to ${source.relativePath} lines ${source.startLine}-${source.endLine}`);
+    console.log(`[VirtualDoc] handleParagraphChange called for ${source.relativePath} lines ${source.startLine}-${source.endLine}`);
+    console.log(`[VirtualDoc] New content length: ${newContent.length}`);
     
     try {
       const result = await window.api.updateLines(
@@ -56,15 +59,23 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
       if (result.success) {
         console.log(`[VirtualDoc] Successfully synced to ${source.relativePath}, new end line: ${result.data?.newEndLine}`);
         // Update the source's end line for future edits
-        source.endLine = result.data?.newEndLine ?? source.endLine;
+        const newEndLine = result.data?.newEndLine ?? source.endLine;
+        source.endLine = newEndLine;
+        
+        // Update this paragraph in all virtual documents (including the current one)
+        // This ensures the tag view stays in sync when switching tabs
+        AppState.updateVirtualParagraph(source.filePath, source.startLine, newContent, newEndLine);
         
         // Refresh any open tab for this file so it shows the updated content
         // Read the full file content and update the tab
         const fileResult = await window.api.readFile(source.filePath);
         if (fileResult.success && fileResult.data) {
-          console.log(`[VirtualDoc] Refreshing tab for ${source.filePath}`);
+          console.log(`[VirtualDoc] Read file ${source.filePath}, content length: ${fileResult.data.length}`);
+          console.log(`[VirtualDoc] Calling refreshTabContent...`);
           const refreshed = AppState.refreshTabContent(source.filePath, fileResult.data);
           console.log(`[VirtualDoc] Tab refresh result: ${refreshed}`);
+        } else {
+          console.error(`[VirtualDoc] Failed to read file: ${fileResult.error}`);
         }
       } else {
         console.error(`[VirtualDoc] Failed to sync: ${result.error}`);
@@ -86,7 +97,7 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
         markdown(),
         syntaxHighlighting(defaultHighlightStyle),
         oneDark,
-        virtualDocumentExtension(handleParagraphChange),
+        virtualDocumentExtension(handleParagraphChange, onFileClick),
       ],
     });
 
@@ -106,7 +117,7 @@ export function VirtualDocumentViewer({ data }: VirtualDocumentViewerProps): Rea
       editor.destroy();
       editorRef.current = null;
     };
-  }, [data, handleParagraphChange]);
+  }, [data, handleParagraphChange, onFileClick]);
 
   return (
     <div 

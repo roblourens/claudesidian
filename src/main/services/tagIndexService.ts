@@ -96,11 +96,19 @@ export function clearIndex(): void {
  * Index a single file and add its tags to the index.
  */
 async function indexFile(filePath: string, workspaceRoot: string): Promise<void> {
+  // Skip if already indexed (prevents duplicates during parallel indexing)
+  if (indexedFiles.has(filePath)) {
+    return;
+  }
+  
   try {
     const content = await readFile(filePath, 'utf-8');
     const paragraphs = parseMarkdownForTags(content);
     
     const relativePath = path.relative(workspaceRoot, filePath);
+    
+    // Mark as indexed first to prevent race conditions
+    indexedFiles.add(filePath);
     
     // Add each tagged paragraph to the index
     for (const paragraph of paragraphs) {
@@ -119,14 +127,20 @@ async function indexFile(filePath: string, workspaceRoot: string): Promise<void>
         }
         const tagLocations = tagIndex.get(tag);
         if (tagLocations) {
-          tagLocations.push(location);
+          // Check for duplicate (same file, same start line)
+          const isDuplicate = tagLocations.some(
+            loc => loc.filePath === filePath && loc.startLine === paragraph.startLine
+          );
+          if (!isDuplicate) {
+            tagLocations.push(location);
+          }
         }
       }
     }
-    
-    indexedFiles.add(filePath);
   } catch (error) {
     console.error(`Failed to index file ${filePath}:`, error);
+    // Remove from indexed set if we failed
+    indexedFiles.delete(filePath);
   }
 }
 
