@@ -340,7 +340,8 @@ export function openTab(filePath: string | null, content: string, options?: Open
     virtualData: options?.virtualData,
   };
 
-  state.openTabs.push(tab);
+  // Create a new array with the new tab (for React to detect the change)
+  state.openTabs = [...state.openTabs, tab];
   setActiveTab(tab.id);
   return tab.id;
 }
@@ -367,7 +368,11 @@ export function closeTab(tabId: string): string | null {
   const index = state.openTabs.findIndex(t => t.id === tabId);
   if (index === -1) return state.activeTabId;
 
-  state.openTabs.splice(index, 1);
+  // Create a new array without the closed tab (for React to detect the change)
+  state.openTabs = [
+    ...state.openTabs.slice(0, index),
+    ...state.openTabs.slice(index + 1),
+  ];
 
   // If we closed the active tab, select another
   if (state.activeTabId === tabId) {
@@ -458,8 +463,11 @@ export function reorderTabs(fromIndex: number, toIndex: number): void {
   if (fromIndex < 0 || fromIndex >= state.openTabs.length) return;
   if (toIndex < 0 || toIndex >= state.openTabs.length) return;
 
-  const [movedTab] = state.openTabs.splice(fromIndex, 1);
-  state.openTabs.splice(toIndex, 0, movedTab);
+  // Create a new array with the tab moved (for React to detect the change)
+  const newTabs = [...state.openTabs];
+  const [movedTab] = newTabs.splice(fromIndex, 1);
+  newTabs.splice(toIndex, 0, movedTab);
+  state.openTabs = newTabs;
 
   notify();
 }

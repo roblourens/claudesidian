@@ -187,6 +187,7 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
             className="tab-close"
             title="Close (⌘W)"
             aria-label={`Close ${getTabDisplayName(tab)}`}
+            draggable={false}
             onMouseDown={(e) => {
               // Use mousedown for immediate response
               e.preventDefault();
@@ -194,7 +195,7 @@ export function TabBar({ onTabSelect, onTabClose }: TabBarProps): React.ReactEle
               onTabClose(tab);
             }}
             onClick={(e) => {
-              // Prevent any additional handling
+              // Prevent click from reaching parent tab
               e.preventDefault();
               e.stopPropagation();
             }}

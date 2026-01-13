@@ -360,6 +360,9 @@ button, input, textarea, a, [role="button"] {
   opacity: 0;
   transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .tab:hover .tab-close,

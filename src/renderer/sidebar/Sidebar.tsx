@@ -36,7 +36,7 @@ function isElectron(): boolean {
 // =============================================================================
 
 interface FileIconProps {
-  type: 'folder' | 'markdown' | 'file';
+  type: 'folder' | 'markdown' | 'image' | 'file';
 }
 
 function FileIcon({ type }: FileIconProps): React.ReactElement {
@@ -54,6 +54,16 @@ function FileIcon({ type }: FileIconProps): React.ReactElement {
     return (
       <svg style={iconStyle} viewBox="0 0 16 16" fill="currentColor">
         <path d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM3.5 10V6h1l1.5 2 1.5-2h1v4h-1V7.5L6 9.5 4.5 7.5V10h-1zm7 0V7h-1.5l2-2.5 2 2.5H11.5v3h-1z"/>
+      </svg>
+    );
+  }
+  
+  if (type === 'image') {
+    return (
+      <svg style={iconStyle} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
       </svg>
     );
   }
@@ -92,12 +102,21 @@ function FileEntryItem({
   /**
    * Get an icon for a file based on extension.
    */
-  const getFileIcon = (filename: string): 'markdown' | 'file' => {
+  const getFileIcon = (filename: string): 'markdown' | 'image' | 'file' => {
     const ext = filename.split('.').pop()?.toLowerCase();
     switch (ext) {
       case 'md':
       case 'markdown':
         return 'markdown';
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'webp':
+      case 'svg':
+      case 'bmp':
+      case 'ico':
+        return 'image';
       default:
         return 'file';
     }
