@@ -8,6 +8,7 @@ This directory contains the technical documentation for Claudesidian. Read these
 |----------|-------------|
 | [architecture.md](architecture.md) | Process model, security, directory structure |
 | [wysiwyg.md](wysiwyg.md) | WYSIWYG markdown editing implementation |
+| [tags.md](tags.md) | Tag indexing and virtual document system |
 | [filesystem.md](filesystem.md) | File operations, workspace, sidebar |
 | [ipc.md](ipc.md) | IPC communication patterns and security |
 | [build.md](build.md) | Build system and configuration |
