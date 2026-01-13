@@ -12,7 +12,7 @@ import {
   WidgetType 
 } from '@codemirror/view';
 import { EditorState, StateField, StateEffect, RangeSetBuilder } from '@codemirror/state';
-import { EmbeddedParagraphWidget, type ParagraphSource, type OnParagraphChange, type OnFileClick } from '../widgets/EmbeddedParagraphWidget';
+import { EmbeddedParagraphWidget, type ParagraphSource, type OnParagraphChange, type OnFileClick, type OnTagClick } from '../widgets/EmbeddedParagraphWidget';
 
 /**
  * Data for a paragraph in a virtual document.
@@ -47,6 +47,7 @@ const onChangeCallback = StateEffect.define<OnParagraphChange>();
 // Store the callbacks - we need this because StateField can't easily access external values
 let globalOnChange: OnParagraphChange = () => { /* noop */ };
 let globalOnFileClick: OnFileClick | undefined;
+let globalOnTagClick: OnTagClick | undefined;
 
 /**
  * Widget that displays as a placeholder (replaced by actual embedded editor).
@@ -64,7 +65,8 @@ class ParagraphPlaceholderWidget extends WidgetType {
       this.paragraph.content,
       this.paragraph.source,
       globalOnChange,
-      globalOnFileClick
+      globalOnFileClick,
+      globalOnTagClick
     );
     return widget.toDOM();
   }
@@ -198,11 +200,13 @@ export function buildVirtualDocumentContent(data: VirtualDocumentData): string {
  * Create the virtual document extension.
  * @param onChange - Callback when embedded paragraph content changes
  * @param onFileClick - Callback when filename is clicked for navigation
+ * @param onTagClick - Callback when a tag is clicked
  */
-export function virtualDocumentExtension(onChange: OnParagraphChange, onFileClick?: OnFileClick) {
+export function virtualDocumentExtension(onChange: OnParagraphChange, onFileClick?: OnFileClick, onTagClick?: OnTagClick) {
   // Store the callbacks globally (not ideal, but works for our use case)
   globalOnChange = onChange;
   globalOnFileClick = onFileClick;
+  globalOnTagClick = onTagClick;
   
   return [
     virtualDocumentState,

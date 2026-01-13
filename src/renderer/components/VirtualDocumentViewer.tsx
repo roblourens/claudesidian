@@ -17,7 +17,7 @@ import {
   buildVirtualDocumentContent,
   type VirtualDocumentData 
 } from '../editor/extensions/virtualDocument';
-import type { ParagraphSource, OnFileClick } from '../editor/widgets/EmbeddedParagraphWidget';
+import type { ParagraphSource, OnFileClick, OnTagClick } from '../editor/widgets/EmbeddedParagraphWidget';
 import * as AppState from '../state/AppState';
 
 // Import preload API types
@@ -28,12 +28,14 @@ export interface VirtualDocumentViewerProps {
   data: VirtualDocumentData;
   /** Callback when a filename is clicked */
   onFileClick?: OnFileClick;
+  /** Callback when a tag is clicked */
+  onTagClick?: OnTagClick;
 }
 
 /**
  * Virtual document viewer with embedded editable paragraphs.
  */
-export function VirtualDocumentViewer({ data, onFileClick }: VirtualDocumentViewerProps): React.ReactElement {
+export function VirtualDocumentViewer({ data, onFileClick, onTagClick }: VirtualDocumentViewerProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
 
@@ -97,7 +99,7 @@ export function VirtualDocumentViewer({ data, onFileClick }: VirtualDocumentView
         markdown(),
         syntaxHighlighting(defaultHighlightStyle),
         oneDark,
-        virtualDocumentExtension(handleParagraphChange, onFileClick),
+        virtualDocumentExtension(handleParagraphChange, onFileClick, onTagClick),
       ],
     });
 
@@ -117,7 +119,7 @@ export function VirtualDocumentViewer({ data, onFileClick }: VirtualDocumentView
       editor.destroy();
       editorRef.current = null;
     };
-  }, [data, handleParagraphChange, onFileClick]);
+  }, [data, handleParagraphChange, onFileClick, onTagClick]);
 
   return (
     <div 

@@ -603,6 +603,7 @@ export function App(): React.ReactElement {
                 handlers.handleFileClick(filePath, lineNumber);
               }
             }}
+            onTagClick={showTaggedParagraphs}
           />
         )}
         {isCurrentTabImage && (

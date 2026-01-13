@@ -10,6 +10,7 @@ import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { tagDecorations, tagTheme } from '../extensions/tagDecorations';
 
 /**
  * Source location for a paragraph.
@@ -42,6 +43,11 @@ export type OnFileClick = (
 ) => void;
 
 /**
+ * Callback when a tag is clicked.
+ */
+export type OnTagClick = (tag: string) => void;
+
+/**
  * Widget that embeds an editable paragraph.
  */
 export class EmbeddedParagraphWidget extends WidgetType {
@@ -49,6 +55,7 @@ export class EmbeddedParagraphWidget extends WidgetType {
   private readonly source: ParagraphSource;
   private readonly onChange: OnParagraphChange;
   private readonly onFileClick?: OnFileClick;
+  private readonly onTagClick?: OnTagClick;
   private editorView: EditorView | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingContent: string | null = null;
@@ -57,13 +64,15 @@ export class EmbeddedParagraphWidget extends WidgetType {
     content: string,
     source: ParagraphSource,
     onChange: OnParagraphChange,
-    onFileClick?: OnFileClick
+    onFileClick?: OnFileClick,
+    onTagClick?: OnTagClick
   ) {
     super();
     this.content = content;
     this.source = source;
     this.onChange = onChange;
     this.onFileClick = onFileClick;
+    this.onTagClick = onTagClick;
   }
 
   /**
@@ -81,10 +90,11 @@ export class EmbeddedParagraphWidget extends WidgetType {
     fileLink.className = 'embedded-paragraph-file';
     fileLink.textContent = this.source.relativePath;
     if (this.onFileClick) {
+      const onFileClick = this.onFileClick;
       fileLink.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        this.onFileClick!(this.source.filePath, this.source.startLine);
+        onFileClick(this.source.filePath, this.source.startLine);
       });
     }
     header.appendChild(fileLink);
@@ -109,6 +119,9 @@ export class EmbeddedParagraphWidget extends WidgetType {
         history(),
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap]),
+        // Tag decorations with click handler
+        tagDecorations({ onTagClick: this.onTagClick }),
+        tagTheme,
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.handleChange(update.state.doc.toString());
