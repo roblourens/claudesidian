@@ -166,3 +166,14 @@ export function setContent(view: EditorView, content: string): void {
     },
   });
 }
+
+/**
+ * Move the cursor to the end of the document.
+ */
+export function moveCursorToEnd(view: EditorView): void {
+  const endPos = view.state.doc.length;
+  view.dispatch({
+    selection: { anchor: endPos, head: endPos },
+    scrollIntoView: true,
+  });
+}

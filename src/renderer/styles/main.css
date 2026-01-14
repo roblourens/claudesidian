@@ -697,12 +697,20 @@ button, input, textarea, a, [role="button"] {
 .sidebar-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 2px;
   padding: 8px;
   padding-top: 42px; /* Space for macOS traffic lights */
   background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
   -webkit-app-region: drag;
+}
+
+.sidebar-toolbar-left,
+.sidebar-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .sidebar-toolbar-btn {

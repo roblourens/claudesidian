@@ -9,7 +9,7 @@
 import '../../preload/api.d.ts';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createEditor, getContent, setContent } from '../editor/Editor';
+import { createEditor, getContent, setContent, moveCursorToEnd } from '../editor/Editor';
 import { FindWidget } from '../editor/FindWidget';
 import { Sidebar } from '../sidebar/Sidebar';
 import { SearchSidebar } from '../sidebar/SearchSidebar';
@@ -111,6 +111,62 @@ export function App(): React.ReactElement {
       console.log(`Showing ${paragraphs.length} paragraphs for tag #${tag}`);
     } catch (error) {
       console.error(`Failed to load paragraphs for tag #${tag}:`, error);
+    }
+  }, []);
+
+  /**
+   * Create or open a daily note for today.
+   * File is named yyyy-mm-dd.md and created in workspace root.
+   */
+  const createDailyNote = useCallback(async (): Promise<void> => {
+    if (!isElectron()) return;
+
+    try {
+      const workspaceRoot = await window.api.getWorkspaceRoot();
+      if (!workspaceRoot) {
+        console.error('No workspace open');
+        return;
+      }
+
+      // Generate today's date in yyyy-mm-dd format
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const filename = `${yyyy}-${mm}-${dd}.md`;
+      const filePath = `${workspaceRoot}/${filename}`;
+
+      // Check if file already exists
+      const exists = await window.api.fileExists(filePath);
+
+      if (exists) {
+        // Open existing daily note
+        const result = await window.api.readFile(filePath);
+        if (result.success && result.content !== undefined) {
+          const tabId = AppState.openTab(filePath, result.content);
+          AppState.setActiveTab(tabId);
+          if (editorRef.current) {
+            setContent(editorRef.current, result.content);
+            moveCursorToEnd(editorRef.current);
+            editorRef.current.focus();
+          }
+        }
+      } else {
+        // Create new daily note with journal tag
+        const initialContent = '#journal\n\n';
+        const tabId = AppState.openTab(filePath, initialContent);
+        AppState.setActiveTab(tabId);
+        if (editorRef.current) {
+          setContent(editorRef.current, initialContent);
+          moveCursorToEnd(editorRef.current);
+          editorRef.current.focus();
+        }
+        // Mark as dirty so user can save
+        AppState.updateTabContent(tabId, initialContent);
+        console.log(`Created daily note: ${filePath}`);
+      }
+    } catch (error) {
+      console.error('Failed to create daily note:', error);
     }
   }, []);
 
@@ -558,25 +614,41 @@ export function App(): React.ReactElement {
         <div id="sidebar" className="sidebar-container">
           {/* Sidebar View Toggle Toolbar */}
           <div className="sidebar-toolbar">
-            <button
-              className={`sidebar-toolbar-btn ${sidebarView === 'explorer' ? 'active' : ''}`}
-              onClick={() => setSidebarView('explorer')}
-              title="Explorer"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-                <polyline points="13 2 13 9 20 9"/>
-              </svg>
-            </button>
-            <button
-              className={`sidebar-toolbar-btn ${sidebarView === 'search' ? 'active' : ''}`}
-              onClick={() => setSidebarView('search')}
-              title="Search (⌘⇧F)"
-            >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-              </svg>
-            </button>
+            <div className="sidebar-toolbar-left">
+              <button
+                className={`sidebar-toolbar-btn ${sidebarView === 'explorer' ? 'active' : ''}`}
+                onClick={() => setSidebarView('explorer')}
+                title="Explorer"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                  <polyline points="13 2 13 9 20 9"/>
+                </svg>
+              </button>
+              <button
+                className={`sidebar-toolbar-btn ${sidebarView === 'search' ? 'active' : ''}`}
+                onClick={() => setSidebarView('search')}
+                title="Search (⌘⇧F)"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+              </button>
+            </div>
+            <div className="sidebar-toolbar-right">
+              <button
+                className="sidebar-toolbar-btn"
+                onClick={createDailyNote}
+                title="Daily Note"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+            </div>
           </div>
           
           {/* Sidebar Content */}
