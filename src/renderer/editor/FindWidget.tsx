@@ -11,7 +11,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { EditorView } from '@codemirror/view';
-import { SearchQuery, findNext, findPrevious, setSearchQuery, closeSearchPanel } from '@codemirror/search';
+import { SearchQuery, setSearchQuery, closeSearchPanel } from '@codemirror/search';
 
 // =============================================================================
 // Types
@@ -157,6 +157,89 @@ export function FindWidget({ editor, onClose, initialQuery = '' }: FindWidgetPro
   }, []);
 
   /**
+   * Navigate to a specific match by dispatching selection change.
+   */
+  const navigateToMatch = useCallback((from: number, to: number) => {
+    editor.dispatch({
+      selection: { anchor: from, head: to },
+      scrollIntoView: true,
+    });
+    editor.focus();
+  }, [editor]);
+
+  /**
+   * Find all matches and return them with selection info.
+   */
+  const getMatches = useCallback((searchText: string, cs: boolean, ww: boolean, re: boolean): { from: number; to: number }[] => {
+    if (!searchText) return [];
+
+    const searchQuery = new SearchQuery({
+      search: searchText,
+      caseSensitive: cs,
+      literal: !re,
+      wholeWord: ww,
+    });
+
+    const cursor = searchQuery.getCursor(editor.state.doc);
+    const matches: { from: number; to: number }[] = [];
+    
+    let result = cursor.next();
+    while (!result.done) {
+      matches.push({ from: result.value.from, to: result.value.to });
+      result = cursor.next();
+    }
+
+    return matches;
+  }, [editor]);
+
+  /**
+   * Go to next match.
+   */
+  const goToNext = useCallback(() => {
+    const matches = getMatches(query, caseSensitive, wholeWord, useRegex);
+    if (matches.length === 0) return;
+
+    const selection = editor.state.selection.main.from;
+    
+    // Find first match after current selection
+    for (const match of matches) {
+      if (match.from > selection) {
+        navigateToMatch(match.from, match.to);
+        setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
+        return;
+      }
+    }
+    
+    // Wrap to first match
+    navigateToMatch(matches[0].from, matches[0].to);
+    setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
+  }, [editor, query, caseSensitive, wholeWord, useRegex, updateSearch, getMatches, navigateToMatch]);
+
+  /**
+   * Go to previous match.
+   */
+  const goToPrevious = useCallback(() => {
+    const matches = getMatches(query, caseSensitive, wholeWord, useRegex);
+    if (matches.length === 0) return;
+
+    const selection = editor.state.selection.main.from;
+    
+    // Find last match before current selection
+    for (let i = matches.length - 1; i >= 0; i--) {
+      if (matches[i].from < selection) {
+        navigateToMatch(matches[i].from, matches[i].to);
+        setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
+        return;
+      }
+    }
+    
+    // Wrap to last match
+    const lastMatch = matches[matches.length - 1];
+    navigateToMatch(lastMatch.from, lastMatch.to);
+    setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
+  }, [editor, query, caseSensitive, wholeWord, useRegex, updateSearch, getMatches, navigateToMatch]);
+
+  /**
    * Handle key down in input.
    */
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -166,38 +249,19 @@ export function FindWidget({ editor, onClose, initialQuery = '' }: FindWidgetPro
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (e.shiftKey) {
-        findPrevious(editor);
+        goToPrevious();
       } else {
-        findNext(editor);
+        goToNext();
       }
-      // Update match count after navigation
-      setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
     } else if (e.key === 'F3' || (e.key === 'g' && (e.metaKey || e.ctrlKey))) {
       e.preventDefault();
       if (e.shiftKey) {
-        findPrevious(editor);
+        goToPrevious();
       } else {
-        findNext(editor);
+        goToNext();
       }
-      setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
     }
-  }, [editor, onClose, query, caseSensitive, wholeWord, useRegex, updateSearch]);
-
-  /**
-   * Go to next match.
-   */
-  const goToNext = useCallback(() => {
-    findNext(editor);
-    setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
-  }, [editor, query, caseSensitive, wholeWord, useRegex, updateSearch]);
-
-  /**
-   * Go to previous match.
-   */
-  const goToPrevious = useCallback(() => {
-    findPrevious(editor);
-    setTimeout(() => updateSearch(query, caseSensitive, wholeWord, useRegex), 10);
-  }, [editor, query, caseSensitive, wholeWord, useRegex, updateSearch]);
+  }, [onClose, goToNext, goToPrevious]);
 
   /**
    * Handle close.
