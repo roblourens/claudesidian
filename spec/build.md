@@ -7,6 +7,7 @@ The project uses Electron Forge with the Vite plugin for fast builds.
 ### Configuration Files
 
 - `forge.config.ts` - Electron Forge configuration
+- `assets/icon.icns` - macOS app icon used by Electron Packager
 - `vite.main.config.ts` - Main process build
 - `vite.preload.config.ts` - Preload script build
 - `vite.renderer.config.mts` - Renderer build with React plugin (ESM format)
