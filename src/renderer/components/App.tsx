@@ -467,11 +467,19 @@ export function App(): React.ReactElement {
       handleFileClick,
     };
 
-    window.api.onMenuCommand('newFile', newFile);
-    window.api.onMenuCommand('openFile', openFileDialog);
-    window.api.onMenuCommand('saveFile', saveFile);
-    window.api.onMenuCommand('openFolder', openFolder);
-    window.api.onMenuCommand('closeTab', closeActiveTab);
+    const unsubNewFile = window.api.onMenuCommand('newFile', newFile);
+    const unsubOpenFile = window.api.onMenuCommand('openFile', openFileDialog);
+    const unsubSaveFile = window.api.onMenuCommand('saveFile', saveFile);
+    const unsubOpenFolder = window.api.onMenuCommand('openFolder', openFolder);
+    const unsubCloseTab = window.api.onMenuCommand('closeTab', closeActiveTab);
+
+    return () => {
+      unsubNewFile();
+      unsubOpenFile();
+      unsubSaveFile();
+      unsubOpenFolder();
+      unsubCloseTab();
+    };
   }, []);
 
   // Open folder handler
