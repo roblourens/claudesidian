@@ -87,6 +87,8 @@ The renderer uses **React** with functional components and hooks.
 - **state/AppState.ts**: Application state management (pub/sub) with tab support
 - **styles/**: CSS (plain CSS, no preprocessor)
 
+On startup, the renderer ensures there is always at least one open tab (an untitled document) so the tab bar and editor are immediately available.
+
 **React Integration:**
 - Vite is configured with `@vitejs/plugin-react` for JSX transform
 - Components use hooks (`useState`, `useEffect`, `useCallback`) for state and lifecycle

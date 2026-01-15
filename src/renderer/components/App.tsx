@@ -273,6 +273,12 @@ export function App(): React.ReactElement {
     });
     editorRef.current = editor;
 
+    if (AppState.getOpenTabs().length === 0) {
+      const tabId = AppState.openTab(null, '');
+      AppState.setActiveTab(tabId);
+      setContent(editor, '');
+    }
+
     // Log platform info
     if (isElectron()) {
       console.log(`Notes App running on ${window.api.platform}`);
