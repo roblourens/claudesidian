@@ -19,6 +19,7 @@ import { tagAutocomplete } from './extensions/tagAutocomplete';
 import { wikilinkDecorations, wikilinkTheme } from './extensions/wikilinkDecorations';
 import { imageDecorations, imageTheme } from './extensions/imageDecorations';
 import { imagePasteHandler } from './extensions/imagePasteHandler';
+import { checkboxToggleKeymap } from './extensions/checkboxToggle';
 
 /**
  * Options for creating an editor.
@@ -64,6 +65,9 @@ function createExtensions(options?: EditorOptions) {
       ...historyKeymap,
       indentWithTab,
     ]),
+
+    // Checkbox toggle (Cmd+L)
+    checkboxToggleKeymap,
 
     // Markdown language support
     markdown({

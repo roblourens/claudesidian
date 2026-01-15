@@ -36,3 +36,7 @@ Spec files to consider updating:
 - Add Playwright tests for new user-facing features
 - Tests go in `tests/` directory
 - Run `npm test` before committing
+
+## Committing
+
+Whenever you have a complete piece of work, commit it.

@@ -302,6 +302,42 @@ export function App(): React.ReactElement {
     return unsubscribe;
   }, []);
 
+  // Auto-save: automatically save dirty tabs with a file path after 1 second of no changes
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isElectron()) return;
+    if (!activeTab || activeTab.isVirtual || !activeTab.filePath || !activeTab.isDirty) {
+      return;
+    }
+
+    // Clear previous timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Debounce auto-save by 1 second
+    const tabToSave = activeTab;
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const result = await window.api.writeFile(tabToSave.filePath!, tabToSave.content);
+        if (result.success) {
+          AppState.markTabSaved(tabToSave.id, tabToSave.content);
+          console.log('[AutoSave] Saved:', tabToSave.filePath);
+        } else {
+          console.error('[AutoSave] Failed to save:', result.error);
+        }
+      } catch (error) {
+        console.error('[AutoSave] Error:', error);
+      }
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [activeTab?.id, activeTab?.content, activeTab?.isDirty, activeTab?.filePath, activeTab?.isVirtual]);
+
   // Sync editor content when active tab changes or tab content is updated externally
   // This handles all tab switches and external content updates (e.g., from tag view edits)
   useEffect(() => {
