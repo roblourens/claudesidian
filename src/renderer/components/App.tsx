@@ -272,14 +272,6 @@ export function App(): React.ReactElement {
       saveImage,
     });
     editorRef.current = editor;
-    
-    // Create initial tab if none exists
-    if (AppState.getOpenTabs().length === 0) {
-      const tabId = AppState.openTab(null, '');
-      AppState.setActiveTab(tabId);
-    }
-    
-    editor.focus();
 
     // Log platform info
     if (isElectron()) {

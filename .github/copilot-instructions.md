@@ -40,3 +40,7 @@ Spec files to consider updating:
 ## Committing
 
 Whenever you have a complete piece of work, commit it.
+
+## Dev workflow
+
+Always verify changes with playwright, manual testing or unit tests as appropriate.
