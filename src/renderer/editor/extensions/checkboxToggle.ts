@@ -47,19 +47,15 @@ function toggleCheckbox(view: EditorView): boolean {
     return false;
   }
 
-  // Calculate cursor position adjustment
-  const oldLength = lineText.length;
-  const newLength = newText.length;
-  const cursorOffset = head - line.from;
-  
-  // Adjust cursor to maintain relative position, accounting for text changes
-  let newCursorOffset = cursorOffset;
-  if (newLength !== oldLength) {
-    // If cursor is past the bullet prefix, adjust for the change
-    const prefixChange = newLength - oldLength;
-    if (cursorOffset > 2) { // Past the "- " prefix
-      newCursorOffset = Math.max(2, cursorOffset + prefixChange);
-    }
+  // Move cursor to the end of the checkbox/bullet prefix
+  const checkboxPrefix = /^\s*- \[[ x]\] /;
+  const bulletPrefix = /^\s*- /;
+
+  let newCursorOffset = 0;
+  if (checkboxPrefix.test(newText)) {
+    newCursorOffset = newText.match(checkboxPrefix)?.[0].length ?? 0;
+  } else {
+    newCursorOffset = newText.match(bulletPrefix)?.[0].length ?? 0;
   }
 
   view.dispatch({

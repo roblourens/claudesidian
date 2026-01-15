@@ -56,6 +56,10 @@ class CheckboxWidget extends WidgetType {
 
 Click handling finds the line, matches the `[ ]` or `[x]` pattern, and dispatches a transaction to toggle it.
 
+## Checkbox Toggle Keybinding
+
+`Cmd+L` (Mod+L) cycles the current line between plain bullet, unchecked, and checked states. After toggling, the cursor is moved to the end of the checkbox/bullet prefix so typing continues immediately after the marker.
+
 ## Adding New Formatting
 
 To add support for new markdown syntax:
