@@ -39,11 +39,6 @@ export interface VirtualDocumentData {
  */
 export const setVirtualDocument = StateEffect.define<VirtualDocumentData | null>();
 
-/**
- * Facet to hold the onChange callback.
- */
-const onChangeCallback = StateEffect.define<OnParagraphChange>();
-
 // Store the callbacks - we need this because StateField can't easily access external values
 let globalOnChange: OnParagraphChange = () => { /* noop */ };
 let globalOnFileClick: OnFileClick | undefined;
@@ -222,6 +217,3 @@ export function virtualDocumentExtension(onChange: OnParagraphChange, onFileClic
     }),
   ];
 }
-
-// Mark onChangeCallback as used
-void onChangeCallback;

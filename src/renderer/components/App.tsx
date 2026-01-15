@@ -170,12 +170,12 @@ export function App(): React.ReactElement {
    * Navigate to a wikilink target file.
    * Opens the file if it exists, or creates a new file if it doesn't.
    */
-  const navigateToWikilink = useCallback(async (target: string, heading?: string): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const navigateToWikilink = useCallback(async (target: string, _heading?: string): Promise<void> => {
     if (!isElectron() || !editorRef.current) return;
 
     try {
-      // TODO: Use heading parameter to scroll to specific heading after navigation
-      void heading;
+      // TODO: Use _heading parameter to scroll to specific heading after navigation
       
       // Try to find the file in the workspace
       const filePath = await window.api.findFileByName(target);
@@ -409,7 +409,6 @@ export function App(): React.ReactElement {
 
       // Virtual documents cannot be saved
       if (activeTab.isVirtual) {
-
         return;
       }
 
