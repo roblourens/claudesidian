@@ -267,11 +267,6 @@ export function App(): React.ReactElement {
     });
     editorRef.current = editor;
 
-    // Create an initial tab for browser mode (Electron creates tabs from restored state or opens untitled)
-    if (!isElectron()) {
-      AppState.openTab(null, '');
-    }
-
     return () => {
       editor.destroy();
     };
