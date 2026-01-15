@@ -142,11 +142,11 @@ export function App(): React.ReactElement {
       if (exists) {
         // Open existing daily note
         const result = await window.api.readFile(filePath);
-        if (result.success && result.content !== undefined) {
-          const tabId = AppState.openTab(filePath, result.content);
+        if (result.success && result.data !== undefined) {
+          const tabId = AppState.openTab(filePath, result.data);
           AppState.setActiveTab(tabId);
           if (editorRef.current) {
-            setContent(editorRef.current, result.content);
+            setContent(editorRef.current, result.data);
             moveCursorToEnd(editorRef.current);
             editorRef.current.focus();
           }

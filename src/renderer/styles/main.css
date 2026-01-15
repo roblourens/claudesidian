@@ -1053,7 +1053,7 @@ button, input, textarea, a, [role="button"] {
 
 /* Embedded paragraph styling */
 .embedded-paragraph {
-  margin: 8px 16px;
+  margin: 4px 16px;
   border: 1px solid var(--border-secondary);
   border-radius: 6px;
   overflow: hidden;
@@ -1061,49 +1061,54 @@ button, input, textarea, a, [role="button"] {
 }
 
 .embedded-paragraph:first-child {
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .embedded-paragraph:last-child {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .embedded-paragraph-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-secondary);
-  font-size: 12px;
+  padding: 4px 10px;
+  background-color: transparent;
+  border-bottom: none;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.embedded-paragraph:hover .embedded-paragraph-header {
+  opacity: 1;
 }
 
 .embedded-paragraph-file {
-  color: var(--text-link);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-weight: 400;
   cursor: pointer;
 }
 
 .embedded-paragraph-file:hover {
+  color: var(--text-link);
   text-decoration: underline;
 }
 
 .embedded-paragraph-line {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .embedded-paragraph-editor {
-  padding: 8px;
+  padding: 0;
 }
 
 .embedded-paragraph-editor .cm-editor {
   background-color: var(--bg-tertiary);
-  border-radius: 4px;
 }
 
 .embedded-paragraph-editor .cm-content {
-  padding: 8px;
+  padding: 6px 10px;
 }
 
 /* =============================================================================

@@ -190,7 +190,6 @@ export function buildVirtualDocumentContent(data: VirtualDocumentData): string {
     // Add placeholder line that will be replaced by widget
     // The widget itself shows the file path and line number in its header
     lines.push(`[EMBEDDED:${paragraph.source.filePath}:${paragraph.source.startLine}]`);
-    lines.push('');
   }
   
   return lines.join('\n');
@@ -215,50 +214,10 @@ export function virtualDocumentExtension(onChange: OnParagraphChange, onFileClic
     // Make the document read-only except for widgets
     EditorState.readOnly.of(true),
     
-    // Theme for virtual document
+    // Theme for virtual document - only hide placeholders, rest is in main.css
     EditorView.theme({
       '.hidden-placeholder': {
         display: 'none',
-      },
-      '.embedded-paragraph': {
-        margin: '4px 12px',
-        border: '1px solid #3a3f4b',
-        borderRadius: '6px',
-        overflow: 'hidden',
-      },
-      '.embedded-paragraph:first-child': {
-        marginTop: '12px',
-      },
-      '.embedded-paragraph-header': {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '8px 12px',
-        backgroundColor: '#2c313a',
-        borderBottom: '1px solid #3a3f4b',
-        fontSize: '12px',
-        color: '#9da5b4',
-      },
-      '.embedded-paragraph-file': {
-        fontWeight: '600',
-        color: '#61afef',
-        cursor: 'pointer',
-      },
-      '.embedded-paragraph-file:hover': {
-        textDecoration: 'underline',
-      },
-      '.embedded-paragraph-line': {
-        color: '#7f848e',
-        fontSize: '11px',
-      },
-      '.embedded-paragraph-editor': {
-        padding: '0',
-      },
-      '.embedded-paragraph-editor .cm-editor': {
-        backgroundColor: '#282c34',
-      },
-      '.embedded-paragraph-editor .cm-content': {
-        padding: '10px 12px',
-        minHeight: '40px',
       },
     }),
   ];
