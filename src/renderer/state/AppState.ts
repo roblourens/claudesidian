@@ -480,7 +480,6 @@ export function reorderTabs(fromIndex: number, toIndex: number): void {
 export function refreshTabContent(filePath: string, newContent: string): boolean {
   const tabIndex = state.openTabs.findIndex(t => t.filePath === filePath);
   if (tabIndex === -1) {
-    console.log('[AppState] refreshTabContent: tab not found for', filePath);
     return false;
   }
   
@@ -488,7 +487,6 @@ export function refreshTabContent(filePath: string, newContent: string): boolean
   
   // Don't overwrite unsaved changes - user's local edits take priority
   if (tab.isDirty) {
-    console.log('[AppState] refreshTabContent: skipping dirty tab', filePath);
     return false;
   }
   
@@ -511,7 +509,6 @@ export function refreshTabContent(filePath: string, newContent: string): boolean
     state.originalContent = newContent;
   }
   
-  console.log('[AppState] refreshTabContent: updated tab', filePath);
   notify();
   return true;
 }
@@ -562,7 +559,6 @@ export function updateVirtualParagraph(
           ...state.openTabs.slice(i + 1),
         ];
         
-        console.log('[AppState] updateVirtualParagraph: updated paragraph in', tab.title);
         updated = true;
         break; // Only one matching paragraph per file/line in a virtual doc
       }

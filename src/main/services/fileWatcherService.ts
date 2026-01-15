@@ -40,17 +40,14 @@ export function startWatching(workspaceRoot: string): void {
   });
   
   watcher.on('change', (filePath) => {
-    console.log('File changed:', filePath);
     handleFileChange(filePath, 'change');
   });
   
   watcher.on('add', (filePath) => {
-    console.log('File added:', filePath);
     handleFileChange(filePath, 'add');
   });
   
   watcher.on('unlink', (filePath) => {
-    console.log('File removed:', filePath);
     handleFileChange(filePath, 'unlink');
   });
   

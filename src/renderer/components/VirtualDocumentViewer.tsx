@@ -47,9 +47,6 @@ export function VirtualDocumentViewer({ data, onFileClick, onTagClick }: Virtual
     source: ParagraphSource,
     newContent: string
   ): Promise<void> => {
-    console.log(`[VirtualDoc] handleParagraphChange called for ${source.relativePath} lines ${source.startLine}-${source.endLine}`);
-    console.log(`[VirtualDoc] New content length: ${newContent.length}`);
-    
     try {
       const result = await window.api.updateLines(
         source.filePath,
@@ -59,7 +56,6 @@ export function VirtualDocumentViewer({ data, onFileClick, onTagClick }: Virtual
       );
       
       if (result.success) {
-        console.log(`[VirtualDoc] Successfully synced to ${source.relativePath}, new end line: ${result.data?.newEndLine}`);
         // Update the source's end line for future edits
         const newEndLine = result.data?.newEndLine ?? source.endLine;
         source.endLine = newEndLine;
@@ -69,18 +65,14 @@ export function VirtualDocumentViewer({ data, onFileClick, onTagClick }: Virtual
         AppState.updateVirtualParagraph(source.filePath, source.startLine, newContent, newEndLine);
         
         // Refresh any open tab for this file so it shows the updated content
-        // Read the full file content and update the tab
         const fileResult = await window.api.readFile(source.filePath);
         if (fileResult.success && fileResult.data) {
-          console.log(`[VirtualDoc] Read file ${source.filePath}, content length: ${fileResult.data.length}`);
-          console.log(`[VirtualDoc] Calling refreshTabContent...`);
-          const refreshed = AppState.refreshTabContent(source.filePath, fileResult.data);
-          console.log(`[VirtualDoc] Tab refresh result: ${refreshed}`);
+          AppState.refreshTabContent(source.filePath, fileResult.data);
         } else {
-          console.error(`[VirtualDoc] Failed to read file: ${fileResult.error}`);
+          console.error('[VirtualDoc] Failed to read file:', fileResult.error);
         }
       } else {
-        console.error(`[VirtualDoc] Failed to sync: ${result.error}`);
+        console.error('[VirtualDoc] Failed to sync:', result.error);
       }
     } catch (error) {
       console.error('[VirtualDoc] Failed to sync paragraph change:', error);
