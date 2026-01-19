@@ -217,7 +217,7 @@ const api = {
    * Returns an unsubscribe function.
    */
   onMenuCommand: (
-    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder' | 'closeTab',
+    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder' | 'closeTab' | 'nextTab' | 'prevTab',
     callback: () => void
   ): (() => void) => {
     const channel = `menu:${command}`;

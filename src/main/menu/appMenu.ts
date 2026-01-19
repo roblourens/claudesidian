@@ -116,6 +116,17 @@ export function setupApplicationMenu(): void {
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
+        { type: 'separator' },
+        {
+          label: 'Next Tab',
+          accelerator: 'CmdOrCtrl+Shift+]',
+          click: () => sendMenuCommand('nextTab'),
+        },
+        {
+          label: 'Previous Tab',
+          accelerator: 'CmdOrCtrl+Shift+[',
+          click: () => sendMenuCommand('prevTab'),
+        },
       ],
     },
 

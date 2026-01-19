@@ -500,6 +500,8 @@ export function App(): React.ReactElement {
     const unsubSaveFile = window.api.onMenuCommand('saveFile', saveFile);
     const unsubOpenFolder = window.api.onMenuCommand('openFolder', openFolder);
     const unsubCloseTab = window.api.onMenuCommand('closeTab', closeActiveTab);
+    const unsubNextTab = window.api.onMenuCommand('nextTab', () => AppState.selectNextTab());
+    const unsubPrevTab = window.api.onMenuCommand('prevTab', () => AppState.selectPreviousTab());
 
     return () => {
       unsubNewFile();
@@ -507,6 +509,8 @@ export function App(): React.ReactElement {
       unsubSaveFile();
       unsubOpenFolder();
       unsubCloseTab();
+      unsubNextTab();
+      unsubPrevTab();
     };
   }, []);
 
@@ -595,9 +599,19 @@ export function App(): React.ReactElement {
   // Check if current tab is a virtual document with embedded data
   const isCurrentTabVirtualDoc = activeTab?.virtualData !== undefined;
 
-  // Handle keyboard shortcuts for search
+  // Handle keyboard shortcuts for search and tab navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
+      // Ctrl+Tab - next tab (must be renderer-side since Electron menu accelerators don't capture Tab key)
+      if (e.ctrlKey && !e.metaKey && e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          AppState.selectPreviousTab();
+        } else {
+          AppState.selectNextTab();
+        }
+        return;
+      }
       // Cmd+Shift+F - open workspace search
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
         e.preventDefault();
