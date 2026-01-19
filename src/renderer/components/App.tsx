@@ -82,6 +82,7 @@ export function App(): React.ReactElement {
       const paragraphs = await window.api.findParagraphsByTag(tag);
 
       if (paragraphs.length === 0) {
+        console.log(`No paragraphs found for tag #${tag}`);
         return;
       }
 
@@ -106,6 +107,8 @@ export function App(): React.ReactElement {
         virtualData,
       });
       AppState.setActiveTab(tabId);
+
+      console.log(`Showing ${paragraphs.length} paragraphs for tag #${tag}`);
     } catch (error) {
       console.error(`Failed to load paragraphs for tag #${tag}:`, error);
     }
@@ -160,6 +163,7 @@ export function App(): React.ReactElement {
         }
         // Mark as dirty so user can save
         AppState.updateTabContent(tabId, initialContent);
+        console.log(`Created daily note: ${filePath}`);
       }
     } catch (error) {
       console.error('Failed to create daily note:', error);
@@ -170,12 +174,12 @@ export function App(): React.ReactElement {
    * Navigate to a wikilink target file.
    * Opens the file if it exists, or creates a new file if it doesn't.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const navigateToWikilink = useCallback(async (target: string, _heading?: string): Promise<void> => {
+  const navigateToWikilink = useCallback(async (target: string, heading?: string): Promise<void> => {
     if (!isElectron() || !editorRef.current) return;
 
     try {
-      // TODO: Use _heading parameter to scroll to specific heading after navigation
+      // TODO: Use heading parameter to scroll to specific heading after navigation
+      void heading;
       
       // Try to find the file in the workspace
       const filePath = await window.api.findFileByName(target);
@@ -222,6 +226,8 @@ export function App(): React.ReactElement {
 
         // Mark as dirty so user can save
         AppState.updateTabContent(tabId, initialContent);
+
+        console.log(`Created new note: ${newFilePath}`);
       }
 
       // TODO: If heading is provided, scroll to it
@@ -267,6 +273,13 @@ export function App(): React.ReactElement {
     });
     editorRef.current = editor;
 
+    // Log platform info
+    if (isElectron()) {
+      console.log(`Notes App running on ${window.api.platform}`);
+    } else {
+      console.log('Notes App running in browser mode');
+    }
+
     return () => {
       editor.destroy();
     };
@@ -296,13 +309,12 @@ export function App(): React.ReactElement {
 
     // Debounce auto-save by 1 second
     const tabToSave = activeTab;
-    const filePathToSave = activeTab.filePath; // Capture for closure
     autoSaveTimerRef.current = setTimeout(async () => {
-      if (!filePathToSave) return; // Guard against null (shouldn't happen)
       try {
-        const result = await window.api.writeFile(filePathToSave, tabToSave.content);
+        const result = await window.api.writeFile(tabToSave.filePath!, tabToSave.content);
         if (result.success) {
           AppState.markTabSaved(tabToSave.id, tabToSave.content);
+          console.log('[AutoSave] Saved:', tabToSave.filePath);
         } else {
           console.error('[AutoSave] Failed to save:', result.error);
         }
@@ -326,6 +338,7 @@ export function App(): React.ReactElement {
     // Always sync to ensure editor shows latest tab content
     const currentContent = getContent(editorRef.current);
     if (currentContent !== activeTab.content) {
+      console.log('[App] Syncing editor content with tab:', activeTab.filePath, 'content changed:', currentContent.length, '->', activeTab.content.length);
       setContent(editorRef.current, activeTab.content);
     }
   }, [activeTab, activeTab?.content]);
@@ -344,6 +357,7 @@ export function App(): React.ReactElement {
           } else {
             AppState.setWorkspace(workspacePath, []);
           }
+          console.log('Restored workspace:', workspacePath);
         }
       } catch (error) {
         console.error('Failed to restore workspace:', error);
@@ -404,6 +418,7 @@ export function App(): React.ReactElement {
 
       // Virtual documents cannot be saved
       if (activeTab.isVirtual) {
+        console.log('Cannot save virtual document');
         return;
       }
 
@@ -419,6 +434,7 @@ export function App(): React.ReactElement {
       const result = await window.api.writeFile(filePath, content);
       if (result.success) {
         AppState.markTabSaved(activeTab.id, content);
+        console.log('File saved:', filePath);
       } else {
         console.error('Failed to save file:', result.error);
       }
@@ -432,7 +448,10 @@ export function App(): React.ReactElement {
     };
 
     const closeTabHandler = async (tab: AppState.OpenTab): Promise<void> => {
-      // TODO: Show confirmation dialog for unsaved changes
+      if (tab.isDirty && !tab.isVirtual) {
+        console.log('Unsaved changes in tab:', tab.filePath ?? 'untitled');
+      }
+
       const wasActive = tab.id === AppState.getActiveTab()?.id;
       AppState.closeTab(tab.id);
 
@@ -517,6 +536,7 @@ export function App(): React.ReactElement {
 
   // Tab select handler
   const onTabSelect = useCallback((tab: AppState.OpenTab): void => {
+    console.log('[App] onTabSelect called for tab:', tab.id, tab.filePath || tab.title);
     AppState.setActiveTab(tab.id);
     
     // For non-virtual tabs, force sync the editor content immediately
@@ -526,8 +546,12 @@ export function App(): React.ReactElement {
       const freshTab = AppState.getOpenTabs().find(t => t.id === tab.id);
       if (freshTab) {
         const currentContent = getContent(editorRef.current);
+        console.log('[App] onTabSelect: current editor length:', currentContent.length, 'freshTab content length:', freshTab.content.length);
         if (currentContent !== freshTab.content) {
+          console.log('[App] onTabSelect: syncing content for', freshTab.filePath);
           setContent(editorRef.current, freshTab.content);
+        } else {
+          console.log('[App] onTabSelect: content already matches');
         }
       }
       requestAnimationFrame(() => {

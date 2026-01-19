@@ -334,6 +334,7 @@ class WysiwygMarkdownPlugin {
 
   /**
    * Process task list checkboxes (- [ ] or - [x])
+   * The checkbox replaces both the list bullet and the task marker.
    */
   private processCheckbox(
     view: EditorView,
@@ -344,14 +345,31 @@ class WysiwygMarkdownPlugin {
     const nodeText = docText.slice(node.from, node.to);
     const isChecked = nodeText.toLowerCase().includes('x');
     
-    const cursorInside = isSelectionInRange(view, node.from, node.to);
+    // Find the list marker (- or * or +) that precedes this checkbox
+    // Look backwards from the TaskMarker to find the ListMark
+    const line = view.state.doc.lineAt(node.from);
+    const lineTextBefore = docText.slice(line.from, node.from);
+    
+    // Match the list bullet and any whitespace before the checkbox
+    // Pattern: optional leading whitespace, list marker (- * +), space(s)
+    const listMarkerMatch = lineTextBefore.match(/^(\s*)([-*+])(\s+)$/);
+    
+    let replaceFrom = node.from;
+    if (listMarkerMatch) {
+      // Calculate where the list marker starts (after leading whitespace)
+      const leadingWhitespace = listMarkerMatch[1].length;
+      replaceFrom = line.from + leadingWhitespace;
+    }
+    
+    // Check if cursor is in the entire range we're replacing (bullet + checkbox)
+    const cursorInside = isSelectionInRange(view, replaceFrom, node.to);
     
     if (!cursorInside) {
-      // Replace the [ ] or [x] with a checkbox widget
+      // Replace the list marker and [ ]/[x] with a checkbox widget
       const checkboxDeco = Decoration.replace({
         widget: new CheckboxWidget(isChecked),
       });
-      decorations.push(checkboxDeco.range(node.from, node.to));
+      decorations.push(checkboxDeco.range(replaceFrom, node.to));
     }
   }
 }
@@ -416,7 +434,7 @@ const wysiwygTheme = EditorView.baseTheme({
     lineHeight: '1.5',
   },
 
-  // Checkbox widget - custom styled
+  // Checkbox widget - custom styled (replaces list bullet)
   '.cm-md-checkbox': {
     display: 'inline-flex',
     alignItems: 'center',
@@ -424,7 +442,6 @@ const wysiwygTheme = EditorView.baseTheme({
     width: '18px',
     height: '18px',
     marginRight: '6px',
-    marginLeft: '2px',
     verticalAlign: 'middle',
     cursor: 'pointer',
     borderRadius: '4px',
