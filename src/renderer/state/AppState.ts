@@ -456,38 +456,6 @@ export function updateTabFilePath(tabId: string, filePath: string): void {
 }
 
 /**
- * Select the next tab (wrapping to first if at end).
- */
-export function selectNextTab(): void {
-  if (state.openTabs.length === 0) return;
-  
-  const currentIndex = state.openTabs.findIndex(t => t.id === state.activeTabId);
-  if (currentIndex === -1) {
-    // No active tab, select first
-    setActiveTab(state.openTabs[0].id);
-  } else {
-    const nextIndex = (currentIndex + 1) % state.openTabs.length;
-    setActiveTab(state.openTabs[nextIndex].id);
-  }
-}
-
-/**
- * Select the previous tab (wrapping to last if at beginning).
- */
-export function selectPreviousTab(): void {
-  if (state.openTabs.length === 0) return;
-  
-  const currentIndex = state.openTabs.findIndex(t => t.id === state.activeTabId);
-  if (currentIndex === -1) {
-    // No active tab, select last
-    setActiveTab(state.openTabs[state.openTabs.length - 1].id);
-  } else {
-    const prevIndex = (currentIndex - 1 + state.openTabs.length) % state.openTabs.length;
-    setActiveTab(state.openTabs[prevIndex].id);
-  }
-}
-
-/**
  * Reorder tabs by moving a tab from one index to another.
  */
 export function reorderTabs(fromIndex: number, toIndex: number): void {
@@ -543,6 +511,42 @@ export function refreshTabContent(filePath: string, newContent: string): boolean
   
   notify();
   return true;
+}
+
+/**
+ * Switch to the next tab (wrapping around to first if at end).
+ * @returns The new active tab ID, or null if no tabs
+ */
+export function switchToNextTab(): string | null {
+  if (state.openTabs.length === 0 || !state.activeTabId) {
+    return null;
+  }
+
+  const currentIndex = state.openTabs.findIndex(t => t.id === state.activeTabId);
+  if (currentIndex === -1) return null;
+
+  const nextIndex = (currentIndex + 1) % state.openTabs.length;
+  const nextTab = state.openTabs[nextIndex];
+  setActiveTab(nextTab.id);
+  return nextTab.id;
+}
+
+/**
+ * Switch to the previous tab (wrapping around to last if at beginning).
+ * @returns The new active tab ID, or null if no tabs
+ */
+export function switchToPreviousTab(): string | null {
+  if (state.openTabs.length === 0 || !state.activeTabId) {
+    return null;
+  }
+
+  const currentIndex = state.openTabs.findIndex(t => t.id === state.activeTabId);
+  if (currentIndex === -1) return null;
+
+  const prevIndex = currentIndex === 0 ? state.openTabs.length - 1 : currentIndex - 1;
+  const prevTab = state.openTabs[prevIndex];
+  setActiveTab(prevTab.id);
+  return prevTab.id;
 }
 
 /**

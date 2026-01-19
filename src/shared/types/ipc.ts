@@ -196,7 +196,7 @@ export interface IpcEventChannels {
   'menu:saveFile': void;
   'menu:openFolder': void;
   'menu:nextTab': void;
-  'menu:prevTab': void;
+  'menu:previousTab': void;
   /** Fired when a file in the workspace changes externally */
   'workspace:fileChanged': { path: string; type: 'change' | 'add' | 'unlink' };
 }

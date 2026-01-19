@@ -177,3 +177,83 @@ test('should check persistence file location', async () => {
   });
   console.log('Workspace root:', workspaceRoot);
 });
+
+test('should switch tabs with keyboard shortcuts', async () => {
+  // Create at least 3 tabs for testing  
+  await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    win.webContents.send('menu:newFile');
+  });
+  await window.waitForTimeout(200);
+  
+  await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    win.webContents.send('menu:newFile');
+  });
+  await window.waitForTimeout(200);
+  
+  await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    win.webContents.send('menu:newFile');
+  });
+  await window.waitForTimeout(200);
+  
+  const tabs = window.locator('.tab');
+  const tabCount = await tabs.count();
+  console.log('Tab count for keyboard shortcut test:', tabCount);
+  expect(tabCount).toBeGreaterThanOrEqual(3);
+  
+  // Find the currently active tab
+  const getActiveTabIndex = async (): Promise<number> => {
+    const count = await tabs.count();
+    for (let i = 0; i < count; i++) {
+      const isActive = await tabs.nth(i).evaluate(el => el.classList.contains('active'));
+      if (isActive) return i;
+    }
+    return -1;
+  };
+  
+  const initialActiveIndex = await getActiveTabIndex();
+  console.log('Initial active tab index:', initialActiveIndex);
+  
+  // Test: Switch to next tab using menu command (simulating Ctrl+Tab)
+  await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    win.webContents.send('menu:nextTab');
+  });
+  await window.waitForTimeout(200);
+  
+  const afterNextIndex = await getActiveTabIndex();
+  console.log('After nextTab, active index:', afterNextIndex);
+  
+  // Should have moved to next tab (or wrapped to first if was at last)
+  const expectedNextIndex = (initialActiveIndex + 1) % tabCount;
+  expect(afterNextIndex).toBe(expectedNextIndex);
+  
+  // Test: Switch to previous tab using menu command (simulating Ctrl+Shift+Tab)
+  await electronApp.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    win.webContents.send('menu:previousTab');
+  });
+  await window.waitForTimeout(200);
+  
+  const afterPrevIndex = await getActiveTabIndex();
+  console.log('After previousTab, active index:', afterPrevIndex);
+  
+  // Should have moved back to original tab
+  expect(afterPrevIndex).toBe(initialActiveIndex);
+  
+  // Test: Wrap around - go next repeatedly to get back to same tab
+  const startIndex = await getActiveTabIndex();
+  for (let i = 0; i < tabCount; i++) {
+    await electronApp.evaluate(async ({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win.webContents.send('menu:nextTab');
+    });
+    await window.waitForTimeout(100);
+  }
+  
+  const afterFullCycleIndex = await getActiveTabIndex();
+  console.log('After cycling through all tabs, index:', afterFullCycleIndex);
+  expect(afterFullCycleIndex).toBe(startIndex);
+});

@@ -116,17 +116,6 @@ export function setupApplicationMenu(): void {
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
-        { type: 'separator' },
-        {
-          label: 'Next Tab',
-          accelerator: 'CmdOrCtrl+Shift+]',
-          click: () => sendMenuCommand('nextTab'),
-        },
-        {
-          label: 'Previous Tab',
-          accelerator: 'CmdOrCtrl+Shift+[',
-          click: () => sendMenuCommand('prevTab'),
-        },
       ],
     },
 
@@ -136,8 +125,31 @@ export function setupApplicationMenu(): void {
       submenu: [
         { role: 'minimize' },
         { role: 'zoom' },
+        { type: 'separator' },
+        {
+          label: 'Next Tab',
+          accelerator: 'Ctrl+Tab',
+          click: () => sendMenuCommand('nextTab'),
+        },
+        {
+          label: 'Previous Tab',
+          accelerator: 'Ctrl+Shift+Tab',
+          click: () => sendMenuCommand('previousTab'),
+        },
         ...(isMac ? [
-          { type: 'separator' as const },
+          {
+            label: 'Select Next Tab',
+            accelerator: 'Cmd+Shift+]',
+            click: () => sendMenuCommand('nextTab'),
+          },
+          {
+            label: 'Select Previous Tab',
+            accelerator: 'Cmd+Shift+[',
+            click: () => sendMenuCommand('previousTab'),
+          },
+        ] : []),
+        { type: 'separator' },
+        ...(isMac ? [
           { role: 'front' as const },
           { type: 'separator' as const },
           { role: 'window' as const },

@@ -495,13 +495,35 @@ export function App(): React.ReactElement {
       handleFileClick,
     };
 
+    const switchToNextTab = (): void => {
+      const newTabId = AppState.switchToNextTab();
+      if (newTabId && editorRef.current) {
+        const tab = AppState.getOpenTabs().find(t => t.id === newTabId);
+        if (tab && !tab.isVirtual) {
+          setContent(editorRef.current, tab.content);
+          editorRef.current.focus();
+        }
+      }
+    };
+
+    const switchToPreviousTab = (): void => {
+      const newTabId = AppState.switchToPreviousTab();
+      if (newTabId && editorRef.current) {
+        const tab = AppState.getOpenTabs().find(t => t.id === newTabId);
+        if (tab && !tab.isVirtual) {
+          setContent(editorRef.current, tab.content);
+          editorRef.current.focus();
+        }
+      }
+    };
+
     const unsubNewFile = window.api.onMenuCommand('newFile', newFile);
     const unsubOpenFile = window.api.onMenuCommand('openFile', openFileDialog);
     const unsubSaveFile = window.api.onMenuCommand('saveFile', saveFile);
     const unsubOpenFolder = window.api.onMenuCommand('openFolder', openFolder);
     const unsubCloseTab = window.api.onMenuCommand('closeTab', closeActiveTab);
-    const unsubNextTab = window.api.onMenuCommand('nextTab', () => AppState.selectNextTab());
-    const unsubPrevTab = window.api.onMenuCommand('prevTab', () => AppState.selectPreviousTab());
+    const unsubNextTab = window.api.onMenuCommand('nextTab', switchToNextTab);
+    const unsubPrevTab = window.api.onMenuCommand('previousTab', switchToPreviousTab);
 
     return () => {
       unsubNewFile();
@@ -599,19 +621,9 @@ export function App(): React.ReactElement {
   // Check if current tab is a virtual document with embedded data
   const isCurrentTabVirtualDoc = activeTab?.virtualData !== undefined;
 
-  // Handle keyboard shortcuts for search and tab navigation
+  // Handle keyboard shortcuts for search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      // Ctrl+Tab - next tab (must be renderer-side since Electron menu accelerators don't capture Tab key)
-      if (e.ctrlKey && !e.metaKey && e.key === 'Tab') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          AppState.selectPreviousTab();
-        } else {
-          AppState.selectNextTab();
-        }
-        return;
-      }
       // Cmd+Shift+F - open workspace search
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
         e.preventDefault();
