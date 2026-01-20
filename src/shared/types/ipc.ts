@@ -175,6 +175,16 @@ export interface IpcChannels {
   'search:workspace': { args: [query: string, options?: { caseSensitive?: boolean; regex?: boolean; maxResults?: number }]; return: SearchResult[] };
 
   // -------------------------------------------------------------------------
+  // Settings Operations
+  // -------------------------------------------------------------------------
+
+  /** Get editor settings. */
+  'settings:get': { args: []; return: import('./index').EditorConfig };
+
+  /** Update editor settings. */
+  'settings:update': { args: [updates: Partial<import('./index').EditorConfig>]; return: import('./index').EditorConfig };
+
+  // -------------------------------------------------------------------------
   // App Info
   // -------------------------------------------------------------------------
   
@@ -197,6 +207,7 @@ export interface IpcEventChannels {
   'menu:openFolder': void;
   'menu:nextTab': void;
   'menu:previousTab': void;
+  'menu:openSettings': void;
   /** Fired when a file in the workspace changes externally */
   'workspace:fileChanged': { path: string; type: 'change' | 'add' | 'unlink' };
 }

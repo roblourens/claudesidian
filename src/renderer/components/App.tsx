@@ -9,7 +9,7 @@
 import '../../preload/api.d.ts';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createEditor, getContent, setContent, moveCursorToEnd } from '../editor/Editor';
+import { createEditor, getContent, setContent, moveCursorToEnd, applySettings } from '../editor/Editor';
 import { FindWidget } from '../editor/FindWidget';
 import { Sidebar } from '../sidebar/Sidebar';
 import { SearchSidebar } from '../sidebar/SearchSidebar';
@@ -17,8 +17,10 @@ import { TabBar } from '../tabs/TabBar';
 import { TagSidebar } from '../tags/TagSidebar';
 import { ImageViewer } from './ImageViewer';
 import { VirtualDocumentViewer } from './VirtualDocumentViewer';
+import { SettingsModal } from './SettingsModal';
 import * as AppState from '../state/AppState';
 import type { EditorView } from '@codemirror/view';
+import type { EditorConfig } from '../../shared/types';
 
 /** Sidebar view options */
 type SidebarView = 'explorer' | 'search';
@@ -54,6 +56,7 @@ export function App(): React.ReactElement {
   const [showSidebar] = useState(true);
   const [sidebarView, setSidebarView] = useState<SidebarView>('explorer');
   const [showFindWidget, setShowFindWidget] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [hasWorkspace, setHasWorkspace] = useState(false);
   const [activeTab, setActiveTab] = useState<AppState.OpenTab | null>(null);
 
@@ -260,6 +263,15 @@ export function App(): React.ReactElement {
     return window.api.saveImage(filename, base64Data);
   }, []);
 
+  /**
+   * Handle settings change from the settings modal.
+   */
+  const handleSettingsChange = useCallback((settings: EditorConfig): void => {
+    if (editorRef.current) {
+      applySettings(editorRef.current, settings);
+    }
+  }, []);
+
   // Initialize editor
   useEffect(() => {
     if (!editorContainerRef.current) return;
@@ -272,6 +284,15 @@ export function App(): React.ReactElement {
       saveImage,
     });
     editorRef.current = editor;
+
+    // Load and apply initial settings
+    if (isElectron()) {
+      window.api.getSettings().then((settings) => {
+        applySettings(editor, settings);
+      }).catch((error) => {
+        console.error('Failed to load initial settings:', error);
+      });
+    }
 
     // Log platform info
     if (isElectron()) {
@@ -524,6 +545,7 @@ export function App(): React.ReactElement {
     const unsubCloseTab = window.api.onMenuCommand('closeTab', closeActiveTab);
     const unsubNextTab = window.api.onMenuCommand('nextTab', switchToNextTab);
     const unsubPrevTab = window.api.onMenuCommand('previousTab', switchToPreviousTab);
+    const unsubOpenSettings = window.api.onMenuCommand('openSettings', () => setShowSettings(true));
 
     return () => {
       unsubNewFile();
@@ -533,6 +555,7 @@ export function App(): React.ReactElement {
       unsubCloseTab();
       unsubNextTab();
       unsubPrevTab();
+      unsubOpenSettings();
     };
   }, []);
 
@@ -772,6 +795,13 @@ export function App(): React.ReactElement {
           <TagSidebar onTagClick={showTaggedParagraphs} />
         </div>
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSettingsChange={handleSettingsChange}
+      />
     </div>
   );
 }

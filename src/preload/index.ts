@@ -20,6 +20,7 @@ import type {
   TaggedParagraphLocation,
   SearchResult 
 } from '../shared/types/ipc';
+import type { EditorConfig } from '../shared/types';
 
 /**
  * The API exposed to the renderer process via window.api
@@ -209,6 +210,26 @@ const api = {
   },
 
   // ===========================================================================
+  // Settings
+  // ===========================================================================
+
+  /**
+   * Get the current editor settings.
+   */
+  getSettings: (): Promise<EditorConfig> => {
+    return ipcRenderer.invoke('settings:get');
+  },
+
+  /**
+   * Update editor settings.
+   * @param updates - Partial settings to update
+   * @returns The updated full settings object
+   */
+  updateSettings: (updates: Partial<EditorConfig>): Promise<EditorConfig> => {
+    return ipcRenderer.invoke('settings:update', updates);
+  },
+
+  // ===========================================================================
   // Menu Events
   // ===========================================================================
   
@@ -217,7 +238,7 @@ const api = {
    * Returns an unsubscribe function.
    */
   onMenuCommand: (
-    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder' | 'closeTab' | 'nextTab' | 'previousTab',
+    command: 'newFile' | 'openFile' | 'saveFile' | 'openFolder' | 'closeTab' | 'nextTab' | 'previousTab' | 'openSettings',
     callback: () => void
   ): (() => void) => {
     const channel = `menu:${command}`;

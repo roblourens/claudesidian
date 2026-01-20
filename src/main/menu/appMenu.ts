@@ -30,6 +30,12 @@ export function setupApplicationMenu(): void {
       submenu: [
         { role: 'about' as const },
         { type: 'separator' as const },
+        {
+          label: 'Preferences...',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => sendMenuCommand('openSettings'),
+        },
+        { type: 'separator' as const },
         { role: 'services' as const },
         { type: 'separator' as const },
         { role: 'hide' as const },
@@ -77,6 +83,15 @@ export function setupApplicationMenu(): void {
           click: () => sendMenuCommand('closeTab'),
         },
         { type: 'separator' },
+        // Preferences on Windows/Linux (macOS uses App menu)
+        ...(!isMac ? [
+          {
+            label: 'Preferences...',
+            accelerator: 'CmdOrCtrl+,',
+            click: () => sendMenuCommand('openSettings'),
+          },
+          { type: 'separator' as const },
+        ] : []),
         isMac ? { role: 'close', accelerator: 'CmdOrCtrl+Shift+W' } : { role: 'quit' },
       ],
     },

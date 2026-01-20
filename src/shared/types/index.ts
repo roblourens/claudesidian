@@ -27,6 +27,7 @@ export interface EditorConfig {
   lineNumbers: boolean;
   wordWrap: boolean;
   tabSize: number;
+  cursorBlink: boolean;
 }
 
 /**
@@ -39,4 +40,5 @@ export const DEFAULT_EDITOR_CONFIG: EditorConfig = {
   lineNumbers: false,
   wordWrap: true,
   tabSize: 2,
+  cursorBlink: true,
 };

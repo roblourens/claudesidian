@@ -5,7 +5,7 @@
  * It's designed to be extended with additional features as the app grows.
  */
 
-import { EditorState } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 import { EditorView, ViewUpdate, keymap, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
@@ -20,6 +20,7 @@ import { wikilinkDecorations, wikilinkTheme } from './extensions/wikilinkDecorat
 import { imageDecorations, imageTheme } from './extensions/imageDecorations';
 import { imagePasteHandler } from './extensions/imagePasteHandler';
 import { checkboxToggleKeymap } from './extensions/checkboxToggle';
+import type { EditorConfig } from '../../shared/types';
 
 /**
  * Options for creating an editor.
@@ -40,10 +41,69 @@ export interface EditorOptions {
 }
 
 /**
+ * Compartments for dynamic reconfiguration.
+ */
+const fontSizeCompartment = new Compartment();
+const fontFamilyCompartment = new Compartment();
+const cursorBlinkCompartment = new Compartment();
+
+/**
+ * Store reference to the active editor for external updates.
+ */
+let activeEditorView: EditorView | null = null;
+
+/**
+ * Create a theme extension for font size.
+ */
+function fontSizeTheme(fontSize: number) {
+  return EditorView.theme({
+    '.cm-content': {
+      fontSize: `${fontSize}px`,
+    },
+    '.cm-gutters': {
+      fontSize: `${fontSize}px`,
+    },
+  });
+}
+
+/**
+ * Create a theme extension for font family.
+ */
+function fontFamilyTheme(fontFamily: string) {
+  return EditorView.theme({
+    '.cm-content': {
+      fontFamily,
+    },
+    '.cm-gutters': {
+      fontFamily,
+    },
+  });
+}
+
+/**
+ * Create a non-blinking cursor style if needed.
+ */
+function nonBlinkingCursor() {
+  return EditorView.theme({
+    '.cm-cursor': {
+      animation: 'none !important',
+    },
+    '&.cm-focused .cm-cursor': {
+      animation: 'none !important',
+    },
+  });
+}
+
+/**
  * Create the base set of extensions for the editor.
  * These can be extended via the extension system.
  */
 function createExtensions(options?: EditorOptions) {
+  // Default settings
+  const defaultFontSize = 16;
+  const defaultFontFamily = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace';
+  const defaultCursorBlink = true;
+
   const extensions = [
     // Core editing features
     history(),
@@ -80,6 +140,11 @@ function createExtensions(options?: EditorOptions) {
     // Theme
     oneDark,
     baseTheme,
+
+    // Dynamic settings via compartments
+    fontSizeCompartment.of(fontSizeTheme(defaultFontSize)),
+    fontFamilyCompartment.of(fontFamilyTheme(defaultFontFamily)),
+    cursorBlinkCompartment.of(defaultCursorBlink ? [] : nonBlinkingCursor()),
 
     // WYSIWYG markdown - hide syntax markers, show formatted text
     wysiwygMarkdown(),
@@ -148,6 +213,8 @@ export function createEditor(
     parent,
   });
 
+  activeEditorView = view;
+
   return view;
 }
 
@@ -180,4 +247,26 @@ export function moveCursorToEnd(view: EditorView): void {
     selection: { anchor: endPos, head: endPos },
     scrollIntoView: true,
   });
+}
+
+/**
+ * Apply editor settings dynamically.
+ */
+export function applySettings(view: EditorView, settings: EditorConfig): void {
+  view.dispatch({
+    effects: [
+      fontSizeCompartment.reconfigure(fontSizeTheme(settings.fontSize)),
+      fontFamilyCompartment.reconfigure(fontFamilyTheme(settings.fontFamily)),
+      cursorBlinkCompartment.reconfigure(settings.cursorBlink ? [] : nonBlinkingCursor()),
+    ],
+  });
+}
+
+/**
+ * Apply settings to the currently active editor.
+ */
+export function applySettingsToActiveEditor(settings: EditorConfig): void {
+  if (activeEditorView) {
+    applySettings(activeEditorView, settings);
+  }
 }

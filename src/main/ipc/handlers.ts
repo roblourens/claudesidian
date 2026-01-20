@@ -13,7 +13,9 @@ import * as workspaceService from '../services/workspaceService';
 import * as persistenceService from '../services/persistenceService';
 import * as tagIndexService from '../services/tagIndexService';
 import * as fileWatcherService from '../services/fileWatcherService';
+import * as settingsService from '../services/settingsService';
 import type { OpenFileDialogOptions, OpenFolderDialogOptions, SearchResult } from '../../shared/types/ipc';
+import type { EditorConfig } from '../../shared/types';
 
 /**
  * File extensions to search in.
@@ -456,5 +458,23 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     const { caseSensitive = false, regex = false, maxResults = 1000 } = options ?? {};
     
     return searchWorkspaceFiles(workspaceRoot, query, { caseSensitive, regex, maxResults });
+  });
+
+  // ===========================================================================
+  // Settings Operations
+  // ===========================================================================
+
+  ipcMain.handle('settings:get', (event) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return settingsService.getEditorConfig();
+  });
+
+  ipcMain.handle('settings:update', (event, updates: Partial<EditorConfig>) => {
+    if (!validateSender(event)) {
+      throw new Error('Unauthorized');
+    }
+    return settingsService.updateEditorConfig(updates);
   });
 }
