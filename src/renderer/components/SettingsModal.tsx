@@ -10,17 +10,35 @@ import type { EditorConfig } from '../../shared/types';
 
 /**
  * Common font families for the font dropdown.
+ * Organized by category: System, Sans-serif, Serif, Monospace
  */
 const FONT_OPTIONS = [
+  // System fonts
+  { value: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', label: 'System Default' },
+  
+  // Sans-serif fonts (good for reading prose)
+  { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', label: 'System Sans' },
+  { value: '"Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif', label: 'Inter' },
+  { value: '"Helvetica Neue", Helvetica, Arial, sans-serif', label: 'Helvetica' },
+  { value: 'Arial, Helvetica, sans-serif', label: 'Arial' },
+  { value: 'Verdana, Geneva, sans-serif', label: 'Verdana' },
+  { value: '"Segoe UI", Tahoma, Geneva, sans-serif', label: 'Segoe UI' },
+  { value: '"Open Sans", -apple-system, sans-serif', label: 'Open Sans' },
+  { value: 'Avenir, "Avenir Next", -apple-system, sans-serif', label: 'Avenir' },
+  
+  // Serif fonts (classic prose fonts)
+  { value: 'Georgia, "Times New Roman", Times, serif', label: 'Georgia' },
+  { value: '"Times New Roman", Times, Georgia, serif', label: 'Times New Roman' },
+  { value: 'Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif', label: 'Palatino' },
+  { value: '"Baskerville", "Hoefler Text", Georgia, serif', label: 'Baskerville' },
+  { value: '"Hoefler Text", Georgia, serif', label: 'Hoefler Text' },
+  { value: '"Iowan Old Style", Georgia, serif', label: 'Iowan Old Style' },
+  { value: 'Cambria, Georgia, serif', label: 'Cambria' },
+  { value: '"Charter", Georgia, serif', label: 'Charter' },
+  
+  // Monospace (for those who prefer it)
   { value: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace', label: 'System Mono' },
-  { value: '"SF Mono", Menlo, Monaco, Consolas, monospace', label: 'SF Mono' },
   { value: '"Fira Code", "Fira Mono", monospace', label: 'Fira Code' },
-  { value: '"JetBrains Mono", monospace', label: 'JetBrains Mono' },
-  { value: '"Source Code Pro", monospace', label: 'Source Code Pro' },
-  { value: '"Cascadia Code", monospace', label: 'Cascadia Code' },
-  { value: 'monospace', label: 'Monospace' },
-  { value: '"Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif', label: 'Inter (Sans)' },
-  { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif', label: 'System Sans' },
 ];
 
 interface SettingsModalProps {
