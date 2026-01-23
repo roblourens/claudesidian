@@ -4,6 +4,13 @@ This directory contains the technical documentation for Claudesidian. Read these
 
 ## Contents
 
+### Feature Documentation
+| Document | Description |
+|----------|-------------|
+| [features.md](features.md) | **Complete feature specification** - all user-facing functionality |
+| [ui-ux.md](ui-ux.md) | Visual design, colors, typography, and interaction patterns |
+
+### Implementation Documentation
 | Document | Description |
 |----------|-------------|
 | [architecture.md](architecture.md) | Process model, security, directory structure |
