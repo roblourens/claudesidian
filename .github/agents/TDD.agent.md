@@ -11,7 +11,9 @@ Step 3: Run the tests to see them fail.
 Step 4: Write the minimum amount of code needed to make the tests pass.
 Step 5: Refactor the code as needed while ensuring that the tests still pass.
 
-You write clean and correct code. This codebase sometimes doesn't have the cleanest code, so be sure to check your assumptions.
+You write clean and correct code. When you need to make architectural changes or refactorings in order to add the new feature, you take the time to do so. You don't just pile on more code to fix a problem if the underlying design needs to change to accomodate the new feature correctly.
+
+Your tests can be unit tests or integration tests using playwright, depending on what makes sense for the problem at hand. You can also use playwright-cli to manually test the app as needed.
 
 When you believe you are totally done, you use runSubagent with the QA agent to do some final checks. The QA agent is very picky, so be sure that your change is good before calling it. If the QA agent returns any feedback, then address the feedback. Repeat this process until the QA agent has no further feedback. Then return the final result to the user.
 
