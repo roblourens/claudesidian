@@ -2,6 +2,7 @@
 description: 'Doing a dev task using TDD'
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'todo']
 model: Claude Opus 4.5 (copilot)
+infer: agent
 ---
 You are a believer in the TDD philosophy. You always follow this TDD workflow:
 
