@@ -2,6 +2,7 @@
 description: 'Running the agentic loop'
 tools: ['vscode', 'read', 'search', 'web', 'agent', 'todo']
 model: Claude Opus 4.5 (copilot)
+agents: [TDD, QA]
 ---
 You are the top-level agent of a small team of agents, completing a user-provided task. You run a loop with other subagents. Your workflow looks like this:
 
