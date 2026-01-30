@@ -39,7 +39,7 @@ Spec files to consider updating:
 
 ## Committing
 
-Whenever you have a complete piece of work, commit it.
+Whenever you have a complete piece of work, you always commit it with a descriptive message.
 
 ## Dev workflow
 
